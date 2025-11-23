@@ -15,7 +15,7 @@ func (uh *UserHandler) Login(w http.Response, r *http.Request) {
 
 }
 
-func (uh *UserHandler) GetAlarm(w http.Response, r *http.Request) {
+func (uh *UserHandler) GetAlarms(w http.Response, r *http.Request) {
 
 }
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/NiflheimDevs/wclock/interanl/application/dto"
-	"github.com/NiflheimDevs/wclock/interanl/domain/model"
+	"github.com/NiflheimDevs/dyslexics-clock/internal/application/dto"
+	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/model"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
