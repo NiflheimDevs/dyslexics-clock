@@ -13,30 +13,37 @@ type AlarmRepo struct {
 	DB *pgxpool.Pool
 }
 
+func NewAlarmRepo(db *pgxpool.Pool) *AlarmRepo {
+	return &AlarmRepo{
+		DB: db,
+	}
+}
+
 func (d *AlarmRepo) InsertAlarm(ctx context.Context, alarm *model.Alarm) error {
 	query := `INSERT INTO alarms (time, is_repeat, days) VALUES ($1, $2, $3)`
 	alarmsBytes, err := json.Marshal(alarm.RepeatingDays)
 	if err != nil {
-		return err
+		return NormalizeDBError(err, "failed to insert alarm")
 	}
 	_, err = d.DB.Exec(ctx, query, alarm.Time, alarm.IsRepeat, alarmsBytes)
-	return err
+	return NormalizeDBError(err, "failed to insert alarm")
 }
 
-func (d *AlarmRepo) DeleteAlarmById(ctx context.Context, id uint) error {
-	query := `DELETE alarms WHERE id = $1`
-	_, err := d.DB.Exec(ctx, query, id)
-	return err
+func (d *AlarmRepo) DeleteAlarmById(ctx context.Context, alarmID uint, deviceID uint) (int64, error) {
+	query := `DELETE alarms WHERE id = $1 AND device_id = $2`
+	res, err := d.DB.Exec(ctx, query, alarmID, deviceID)
+
+	return res.RowsAffected(), NormalizeDBError(err, "failed to delete alarm")
 }
 
-func (d *AlarmRepo) UpdateAlarm(ctx context.Context, id uint, updateAlarm *dto.UpdateAlarm) error {
-	query := `UPDATE alarms SET time = $2, is_repeat = $3, days = $4 WHERE id = $1`
+func (d *AlarmRepo) UpdateAlarm(ctx context.Context, alarmID uint, deviceID uint, updateAlarm *dto.UpdateAlarm) (int64, error) {
+	query := `UPDATE alarms SET time = $2, is_repeat = $3, days = $4 WHERE id = $1 AND device_id = $5`
 	alarmsBytes, err := json.Marshal(updateAlarm.RepeatingDays)
 	if err != nil {
-		return err
+		return -1, NormalizeDBError(err, "failed to update alarm")
 	}
-	_, err = d.DB.Exec(ctx, query, id, updateAlarm.Time, updateAlarm.IsRepeat, alarmsBytes)
-	return err
+	res, err := d.DB.Exec(ctx, query, alarmID, updateAlarm.Time, updateAlarm.IsRepeat, alarmsBytes, deviceID)
+	return res.RowsAffected(), NormalizeDBError(err, "failed to update alarm")
 }
 
 func (d *AlarmRepo) GetAlarms(ctx context.Context, DeviceId uint) ([]model.Alarm, error) {
@@ -44,7 +51,7 @@ func (d *AlarmRepo) GetAlarms(ctx context.Context, DeviceId uint) ([]model.Alarm
 	var result []model.Alarm
 	rows, err := d.DB.Query(ctx, query, DeviceId)
 	if err != nil {
-		return nil, err
+		return nil, NormalizeDBError(err, "failed to get alarms")
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -52,15 +59,15 @@ func (d *AlarmRepo) GetAlarms(ctx context.Context, DeviceId uint) ([]model.Alarm
 		var item model.Alarm
 		err = rows.Scan(&item.ID, &item.DeviceId, &item.Time, &item.IsRepeat, &days)
 		if err != nil {
-			return nil, err
+			return nil, NormalizeDBError(err, "failed to get alarm")
 		}
 		err = json.Unmarshal(days, &item.RepeatingDays)
 		if err != nil {
-			return nil, err
+			return nil, NormalizeDBError(err, "failed to get alarm repeating days")
 		}
 		result = append(result, item)
 	}
-	return result, err
+	return result, nil
 }
 
 func (d *AlarmRepo) GetAlarmById(ctx context.Context, DeviceId uint) (*model.Alarm, error) {
@@ -69,11 +76,11 @@ func (d *AlarmRepo) GetAlarmById(ctx context.Context, DeviceId uint) (*model.Ala
 	var result model.Alarm
 	err := d.DB.QueryRow(ctx, query, DeviceId).Scan(&result.ID, &result.DeviceId, &result.Time, &result.IsRepeat, &days)
 	if err != nil {
-		return nil, err
+		return nil, NormalizeDBError(err, "failed to get alarm")
 	}
 	err = json.Unmarshal(days, &result.RepeatingDays)
 	if err != nil {
-		return nil, err
+		return nil, NormalizeDBError(err, "failed to get alarm repeating days")
 	}
-	return &result, err
+	return &result, nil
 }
