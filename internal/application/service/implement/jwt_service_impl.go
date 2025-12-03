@@ -2,25 +2,25 @@ package serviceimpl
 
 import (
 	"crypto/rsa"
-	"errors"
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/NiflheimDevs/dyslexics-clock/bootstrap"
-	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/exception"
+	derror "github.com/NiflheimDevs/dyslexics-clock/internal/domain/error"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type JWT struct {
+	Constants  *bootstrap.Constants
 	PrivateKey *rsa.PrivateKey
 	PublicKey  *rsa.PublicKey
 }
 
 func NewJWT(Const *bootstrap.Constants) *JWT {
 	return &JWT{
-		PrivateKey: loadPrivateKey(Const.JWTKeysPath + "/privateKey.pem"),
-		PublicKey:  loadPublicKey(Const.JWTKeysPath + "/publicKey.pem"),
+		Constants:  Const,
+		PrivateKey: loadPrivateKey(Const.JWT.JWTKeysPath + "/privateKey.pem"),
+		PublicKey:  loadPublicKey(Const.JWT.JWTKeysPath + "/publicKey.pem"),
 	}
 }
 
@@ -48,10 +48,10 @@ func loadPublicKey(keyPath string) *rsa.PublicKey {
 	return publicKey
 }
 
-func (j *JWT) GenerateToken(userID int) (string, string) {
+func (j *JWT) GenerateToken(deviceID uint) (string, string) {
 	accessTokenClaims := jwt.MapClaims{
-		"iss": "bidlancer",
-		"sub": userID,
+		"iss": j.Constants.JWT.Issuer,
+		"sub": deviceID,
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
 		"iat": time.Now().Unix(),
 	}
@@ -59,17 +59,12 @@ func (j *JWT) GenerateToken(userID int) (string, string) {
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodRS256, accessTokenClaims)
 	accessTokenString, err := accessToken.SignedString(j.PrivateKey)
 	if err != nil {
-		panic(exception.Exception{
-			Tag: exception.INTERNAL_ERROR,
-			Errors: []exception.SpecificError{
-				exception.AUTH_GENERATE_TOKEN_ERROR,
-			},
-		})
+		panic(derror.New(derror.ErrTypeInternal, "error generating access token", err))
 	}
 
 	refreshTokenClaims := jwt.MapClaims{
-		"iss": "bidlancer",
-		"sub": userID,
+		"iss": j.Constants.JWT.Issuer,
+		"sub": deviceID,
 		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 		"iat": time.Now().Unix(),
 	}
@@ -77,21 +72,16 @@ func (j *JWT) GenerateToken(userID int) (string, string) {
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodRS256, refreshTokenClaims)
 	refreshTokenString, err := refreshToken.SignedString(j.PrivateKey)
 	if err != nil {
-		panic(exception.Exception{
-			Tag: exception.INTERNAL_ERROR,
-			Errors: []exception.SpecificError{
-				exception.AUTH_GENERATE_TOKEN_ERROR,
-			},
-		})
+		panic(derror.New(derror.ErrTypeInternal, "error generating refresh token", err))
 	}
 
 	return accessTokenString, refreshTokenString
 }
 
-func (j *JWT) VerifyToken(tokenString string) (jwt.MapClaims, error) {
+func (j *JWT) VerifyToken(tokenString string) (map[string]any, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			panic(fmt.Errorf("unexpected signing method: %v", token.Header["alg"]))
+			panic(derror.New(derror.ErrTypeUnauthorized, "unexpected signing method:"+token.Header["alg"].(string), nil))
 		}
 		return j.PublicKey, nil
 	})
@@ -102,7 +92,7 @@ func (j *JWT) VerifyToken(tokenString string) (jwt.MapClaims, error) {
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, errors.New("saman says he doesn't like this")
+		return nil, derror.New(derror.ErrTypeUnauthorized,"failed to parse claims", nil)
 	}
 	if exp, ok := claims["exp"].(float64); ok {
 		if time.Now().Unix() > int64(exp) {
@@ -110,33 +100,22 @@ func (j *JWT) VerifyToken(tokenString string) (jwt.MapClaims, error) {
 		}
 	}
 	return claims, nil
-
 }
 
 func (j *JWT) RefreshToken(tokenString string) string {
 	claims, err := j.VerifyToken(tokenString)
 	if claims == nil || err != nil {
-		panic(exception.Exception{
-			Tag: exception.UNAUTHORIZED,
-			Errors: []exception.SpecificError{
-				exception.AUTH_TOKEN_EXPIRED,
-			},
-		})
+		panic (derror.New(derror.ErrTypeUnauthorized, "error verifying token", err))
 	}
 
-	userID, ok := claims["sub"].(float64)
+	deviceID, ok := claims["sub"].(uint)
 	if !ok {
-		panic(exception.Exception{
-			Tag: exception.NOT_FOUND,
-			Errors: []exception.SpecificError{
-				exception.USER_NOT_FOUND,
-			},
-		})
+		panic (derror.New(derror.ErrTypeUnauthorized, "error verifying token", err))
 	}
 
 	newAccessTokenClaims := jwt.MapClaims{
-		"iss": "bidlancer",
-		"sub": int(userID),
+		"iss": j.Constants.JWT.Issuer,
+		"sub": uint(deviceID),
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
 		"iat": time.Now().Unix(),
 	}
@@ -144,13 +123,7 @@ func (j *JWT) RefreshToken(tokenString string) string {
 	newAccessToken := jwt.NewWithClaims(jwt.SigningMethodRS256, newAccessTokenClaims)
 	newAccessTokenString, err := newAccessToken.SignedString(j.PrivateKey)
 	if err != nil {
-		panic(exception.Exception{
-			Tag: exception.UNPROCESSABLE,
-			Errors: []exception.SpecificError{
-				exception.AUTH_GENERATE_TOKEN_ERROR,
-			},
-		})
+		panic(derror.New(derror.ErrTypeInternal, "error generating access token", err))
 	}
-
 	return newAccessTokenString
 }

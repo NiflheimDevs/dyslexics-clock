@@ -4,7 +4,7 @@ import "time"
 
 type Constants struct {
 	Database    DBConst
-	JWTKeysPath string
+	JWT         JWT
 	SSLKeysPath string
 	Port        string
 	DevelopMode bool
@@ -13,7 +13,12 @@ type Constants struct {
 }
 
 type Context struct {
-	UserID string
+	DeviceID string
+}
+
+type JWT struct {
+	JWTKeysPath string
+	Issuer      string
 }
 
 type Kafka struct {
@@ -34,7 +39,10 @@ func NewConstant() *Constants {
 			MaxIdleDbConn: 5 * time.Minute,
 			MaxDbLifeTime: 5 * time.Minute,
 		},
-		JWTKeysPath: "./internal/jwt",
+		JWT: JWT{
+			JWTKeysPath: "./internal/jwt",
+			Issuer:      "dyslexics-clock",
+		},
 		SSLKeysPath: "./SSL",
 		Port:        ":8080",
 		DevelopMode: true,
@@ -43,7 +51,7 @@ func NewConstant() *Constants {
 			Cdctopics:         []string{"postgres.public.users", "postgres.public.users_career_tag", "postgres.public.project", "postgres.public.project_tag", "postgres.public.team"},
 		},
 		Context: Context{
-			UserID: "userID",
+			DeviceID: "deviceID",
 		},
 	}
 }
