@@ -1,4 +1,4 @@
-CREATE TABLE IF EXISTS "devices" (
+CREATE TABLE IF NOT EXISTS "devices" (
     "id" serial PRIMARY KEY,
     "username" varchar(255) NOT NULL,
     "password" bytea NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE IF EXISTS "devices" (
     "created_at" Timestamp WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF EXISTS "alarms" (
+CREATE TABLE IF NOT EXISTS "alarms" (
     "id" serial PRIMARY KEY,
     "device_id" INTEGER NOT NULL,
     "time" Timestamp WITH TIME ZONE NOT NULL,
