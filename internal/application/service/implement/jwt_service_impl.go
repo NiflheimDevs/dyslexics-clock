@@ -19,8 +19,8 @@ type JWT struct {
 func NewJWT(Const *bootstrap.Constants) *JWT {
 	return &JWT{
 		Constants:  Const,
-		PrivateKey: loadPrivateKey(Const.JWT.JWTKeysPath + "/privateKey.pem"),
-		PublicKey:  loadPublicKey(Const.JWT.JWTKeysPath + "/publicKey.pem"),
+		PrivateKey: loadPrivateKey(Const.JWT.JWTKeysPath + "/private_key.pem"),
+		PublicKey:  loadPublicKey(Const.JWT.JWTKeysPath + "/public_key.pem"),
 	}
 }
 
