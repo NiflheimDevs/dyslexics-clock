@@ -12,6 +12,9 @@ services:
       - ./migration/init.sql:/docker-entrypoint-initdb.d/01-init.sql
       - pgdata:/var/lib/postgresql/data
       - ./config/pg_hba.conf:/var/lib/postgresql/data/18/pg_hba.conf
+    command: -p 5433
+    # ports:
+    #   - "5433:5433"
     networks:
       - dyslexic_backend_network
 
