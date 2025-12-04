@@ -1,19 +1,16 @@
 FROM golang:1.25.4-alpine AS builder
 
-ARG HTTP_PROXY
-ARG HTTPS_PROXY
-ARG http_proxy
-ARG https_proxy
-ARG NO_PROXY
-
-ENV HTTP_PROXY=$HTTP_PROXY
-ENV HTTPS_PROXY=$HTTPS_PROXY
-ENV http_proxy=$http_proxy
-ENV https_proxy=$https_proxy
-ENV NO_PROXY=$NO_PROXY
-
-# RUN echo "Proxy is: $HTTP_PROXY" && \
-    # wget -O- https://google.com
+# ARG HTTP_PROXY
+# ARG HTTPS_PROXY
+# ARG http_proxy
+# ARG https_proxy
+# ARG NO_PROXY
+#
+# ENV HTTP_PROXY=$HTTP_PROXY
+# ENV HTTPS_PROXY=$HTTPS_PROXY
+# ENV http_proxy=$http_proxy
+# ENV https_proxy=$https_proxy
+# ENV NO_PROXY=$NO_PROXY
 
 RUN apk add --no-cache
 
