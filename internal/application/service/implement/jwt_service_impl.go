@@ -94,7 +94,7 @@ func (j *JWT) VerifyToken(tokenString string) (map[string]any, error) {
 	if !ok {
 		return nil, derror.New(derror.ErrTypeUnauthorized,"failed to parse claims", nil)
 	}
-	if exp, ok := claims["exp"].(float64); ok {
+	if exp, ok := claims["exp"].(uint); ok {
 		if time.Now().Unix() > int64(exp) {
 			return nil, nil
 		}
