@@ -1,4 +1,4 @@
-CREATE TABLE IF EXISTS "devices" (
+CREATE TABLE IF NOT EXISTS "devices" (
     "id" serial PRIMARY KEY,
     "username" varchar(255) NOT NULL,
     "password" bytea NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE IF EXISTS "devices" (
     "created_at" Timestamp WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF EXISTS "alarms" (
+CREATE TABLE IF NOT EXISTS "alarms" (
     "id" serial PRIMARY KEY,
     "device_id" INTEGER NOT NULL,
     "time" Timestamp WITH TIME ZONE NOT NULL,
@@ -18,4 +18,4 @@ CREATE TABLE IF EXISTS "alarms" (
     FOREIGN KEY ("device_id") REFERENCES "devices" ("id")
 );
 
-INSERT INTO "devices" ("username", "password", "color", "timezone") VALUES ('admin', '\xc00001e240', 'white', 'UTC');
+INSERT INTO "devices" ("username", "password", "color", "timezone") VALUES ('admin', '\x2432612431302441624866564a414239385776397258524674544c504f54696c6e6a75326932552e323868496f4f776931327261393738336e556c57', 'white', 'UTC');

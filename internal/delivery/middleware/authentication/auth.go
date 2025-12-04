@@ -30,7 +30,7 @@ func NewAuth(
 
 func (am *Authentication) AuthRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var deviceID int
+		var deviceID uint
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" || len(authHeader) < 7 || authHeader[:7] != "Bearer " {
 			// deviceID = -2
@@ -45,7 +45,7 @@ func (am *Authentication) AuthRequired(next http.Handler) http.Handler {
 				// deviceID = -1
 				panic(derror.New(derror.ErrTypeUnauthorized, "invalid token", nil))
 			} else {
-				deviceID = int(claims["sub"].(uint))
+				deviceID = uint(claims["sub"].(float64))
 			}
 		}
 		_, err := am.DeviceRepo.GetDeviceById(r.Context(), uint(deviceID))

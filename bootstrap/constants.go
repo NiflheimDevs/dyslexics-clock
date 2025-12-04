@@ -44,7 +44,7 @@ func NewConstant() *Constants {
 			Issuer:      "dyslexics-clock",
 		},
 		SSLKeysPath: "./SSL",
-		Port:        ":8080",
+		Port:        ":8081",
 		DevelopMode: true,
 		Kafka: Kafka{
 			GroupidForElastic: "elastic-readers",

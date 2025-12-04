@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"runtime/debug"
 
 	derror "github.com/NiflheimDevs/dyslexics-clock/internal/domain/error"
 )
@@ -20,14 +21,18 @@ func (recovery *PanicWall) Recovery(next http.Handler) http.Handler {
 		defer func() {
 			if rec := recover(); rec != nil {
 				log.Println(rec)
-				err, ok := rec.(derror.DomainError)
+				err, ok := rec.(*derror.DomainError)
 				if ok {
-					json, status := recovery.handleRecoveredError(&err)
+					json, status := recovery.handleRecoveredError(err)
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(status)
 					w.Write(json)
 				} else {
 					w.WriteHeader(501)
+					stack := debug.Stack()
+
+					// Log the panic with stack trace
+					log.Printf("PANIC: %v\n%s", r, stack)
 					errorResponse := map[string]any{
 						"error": rec,
 					}
@@ -68,7 +73,7 @@ func (recovery *PanicWall) handleRecoveredError(err *derror.DomainError) ([]byte
 	}
 
 	json, _ := json.Marshal(map[string]any{
-		"message": err.Msg,		
+		"message": err.Msg,
 	})
 	return json, code
 }

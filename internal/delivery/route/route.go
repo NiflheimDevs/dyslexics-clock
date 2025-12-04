@@ -31,7 +31,7 @@ func RouteInit(app *wire.App) http.Handler {
 
 	mux.Post("/login", app.Handlers.DeviceHandler.Login)
 
-	mux.Route("device", func(r chi.Router) {
+	mux.Route("/device", func(r chi.Router) {
 		r.Use(app.Middlewares.Auth.AuthRequired)
 		r.Get("/color", app.Handlers.DeviceHandler.GetColor)
 		r.Put("/color", app.Handlers.DeviceHandler.UpdateColor)

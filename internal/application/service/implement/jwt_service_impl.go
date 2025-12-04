@@ -19,8 +19,8 @@ type JWT struct {
 func NewJWT(Const *bootstrap.Constants) *JWT {
 	return &JWT{
 		Constants:  Const,
-		PrivateKey: loadPrivateKey(Const.JWT.JWTKeysPath + "/privateKey.pem"),
-		PublicKey:  loadPublicKey(Const.JWT.JWTKeysPath + "/publicKey.pem"),
+		PrivateKey: loadPrivateKey(Const.JWT.JWTKeysPath + "/private_key.pem"),
+		PublicKey:  loadPublicKey(Const.JWT.JWTKeysPath + "/public_key.pem"),
 	}
 }
 
@@ -94,7 +94,7 @@ func (j *JWT) VerifyToken(tokenString string) (map[string]any, error) {
 	if !ok {
 		return nil, derror.New(derror.ErrTypeUnauthorized,"failed to parse claims", nil)
 	}
-	if exp, ok := claims["exp"].(float64); ok {
+	if exp, ok := claims["exp"].(uint); ok {
 		if time.Now().Unix() > int64(exp) {
 			return nil, nil
 		}

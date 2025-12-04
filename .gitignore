@@ -1,2 +1,2 @@
 .env
-./internal/jwt 
+internal/jwt
