@@ -18,4 +18,4 @@ CREATE TABLE IF NOT EXISTS "alarms" (
     FOREIGN KEY ("device_id") REFERENCES "devices" ("id")
 );
 
-INSERT INTO "devices" ("username", "password", "color", "timezone") VALUES ('admin', '\xc00001e240', 'white', 'UTC');
+INSERT INTO "devices" ("username", "password", "color", "timezone") VALUES ('admin', '\x2432612431302441624866564a414239385776397258524674544c504f54696c6e6a75326932552e323868496f4f776931327261393738336e556c57', 'white', 'UTC');
