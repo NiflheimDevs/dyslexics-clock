@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - server-backend
+      - deploy/docker-pipeline 
 jobs:
   build:
     runs-on: ubuntu-latest
