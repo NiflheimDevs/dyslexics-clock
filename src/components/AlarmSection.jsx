@@ -1,218 +1,215 @@
-import { useState, useEffect } from 'react';
-import { MdAccessAlarm, MdDelete } from 'react-icons/md';
+import { useState } from "react";
+import { MdAccessAlarm, MdDelete, MdAdd } from "react-icons/md";
+import { useAlarms, useCreateAlarm, useDeleteAlarm } from "../hooks/useAlarms";
+// eslint-disable-next-line no-unused-vars
+import { AnimatePresence, motion } from "framer-motion";
 
 const daysOfWeek = [
-  { id: 0, label: 'یکشنبه' },
-  { id: 1, label: 'دوشنبه' },
-  { id: 2, label: 'سه‌شنبه' },
-  { id: 3, label: 'چهارشنبه' },
-  { id: 4, label: 'پنجشنبه' },
-  { id: 5, label: 'جمعه' },
-  { id: 6, label: 'شنبه' },
+  { id: 6, label: "ش" },
+  { id: 0, label: "ی" },
+  { id: 1, label: "د" },
+  { id: 2, label: "س" },
+  { id: 3, label: "چ" },
+  { id: 4, label: "پ" },
+  { id: 5, label: "ج" },
 ];
 
-const AlarmSection = ({ publishMessage }) => {
-  const [alarms, setAlarms] = useState(JSON.parse(localStorage.getItem('alarms')) || []);
-  const [time, setTime] = useState('');
-  const [repeatType, setRepeatType] = useState('once');
+const AlarmSection = () => {
+  const [time, setTime] = useState("");
+  const [repeatType, setRepeatType] = useState("once");
   const [selectedDays, setSelectedDays] = useState([]);
 
-  const notify = (label) => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('آلارم!', { body: label });
-    }
-  };
-
-  useEffect(() => {
-    localStorage.setItem('alarms', JSON.stringify(alarms));
-    const interval = setInterval(() => {
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const currentDay = now.getDay();
-
-      alarms.forEach(alarm => {
-        const [hour, minute] = alarm.time.split(':').map(Number);
-        const alarmMinutes = hour * 60 + minute;
-
-        if (currentMinutes === alarmMinutes) {
-          let shouldRing = true;
-
-          if (alarm.repeatType === 'once' && alarm.rung) {
-            shouldRing = false;
-          } else if (alarm.repeatType === 'weekly') {
-            shouldRing = selectedDays.includes(currentDay); // Note: selectedDays is global state, but should be alarm.days
-            // Correction: use alarm.days
-            shouldRing = alarm.days.includes(currentDay);
-          }
-          // For 'daily', always ring if time matches
-
-          if (shouldRing) {
-            notify(alarm.label);
-            if (alarm.repeatType === 'once') {
-              setAlarms(prev => prev.map(a => a.id === alarm.id ? { ...a, rung: true } : a));
-            }
-          }
-        }
-      });
-    }, 60000); // Every minute
-
-    return () => clearInterval(interval);
-  }, [alarms]); // Dependency on alarms to re-run if alarms change
-
-  const getRepeatLabel = (type, days = []) => {
-    switch (type) {
-      case 'daily': return ' (روزانه)';
-      case 'weekly': {
-        if (days.length === 0) return ' (هفتگی - بدون روز)';
-        const dayLabels = days.map(d => daysOfWeek.find(day => day.id === d)?.label.slice(0, 2) || '').join('، ');
-        return ` (هفتگی: ${dayLabels})`;
-      }
-      default: return ' (یکبار)';
-    }
-  };
+  const { data, isLoading } = useAlarms();
+  const alarms = Array.isArray(data) ? data : data?.data || data?.alarms || [];
+  const createAlarm = useCreateAlarm();
+  const deleteAlarm = useDeleteAlarm();
+  console.log(alarms);
 
   const addAlarm = (e) => {
     e.preventDefault();
-    if (time) {
-      const alarmDate = new Date(`1970-01-01T${time}:00`);
-      const baseLabel = `آلارم ${alarmDate.toLocaleTimeString('fa-IR')}`;
-      const repeatLabel = getRepeatLabel(repeatType, repeatType === 'weekly' ? selectedDays : []);
-      const newAlarm = {
-        id: Date.now(),
-        time,
-        label: baseLabel + repeatLabel,
-        rung: repeatType === 'once' ? false : undefined, // Only for once
-        repeatType,
-        days: repeatType === 'weekly' ? selectedDays : [],
-      };
-      setAlarms([...alarms, newAlarm]);
-      setTime('');
-      setRepeatType('once');
-      setSelectedDays([]);
-      publishMessage('alarm/set', {
-        time: time,
-        label: newAlarm.label,
-        repeatType,
-        days: newAlarm.days,
-      });
-    }
+    if (!time) return;
+
+    createAlarm.mutate(
+      {
+        time: `2025-12-05T${time}:00Z`,
+        is_repeat: repeatType !== "once",
+        days:
+          repeatType === "weekly"
+            ? selectedDays
+            : repeatType === "daily"
+            ? [0, 1, 2, 3, 4, 5, 6]
+            : [],
+      },
+      {
+        onSuccess: () => {
+          setTime("");
+          setRepeatType("once");
+          setSelectedDays([]);
+        },
+      }
+    );
   };
 
-  const deleteAlarm = (id) => {
-    setAlarms(alarms.filter(a => a.id !== id));
-  };
-
-  const updateSelectedDays = (dayId) => {
-    setSelectedDays(prev => 
-      prev.includes(dayId) ? prev.filter(d => d !== dayId) : [...prev, dayId]
+  const toggleDay = (id) => {
+    setSelectedDays((prev) =>
+      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
     );
   };
 
   return (
-    <div className="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-600 transition-all duration-300 hover:shadow-xl animate-fade-in">
-      <h2 className="text-xl font-bold mb-6 text-center text-gray-100 flex items-center justify-center gap-2">
-        <MdAccessAlarm size={24} className="text-alarm" /> تنظیم آلارم
-      </h2>
-      
-      <form className="space-y-4 mb-6" onSubmit={addAlarm}>
-        <input
-          type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          className="w-full sm:block hidden p-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 text-right placeholder-gray-400 focus:ring-2 focus:ring-alarm focus:border-transparent focus:outline-none transition-all duration-200"
-          placeholder="زمان را انتخاب کنید"
-        />
-        <div className="sm:hidden relative">
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-full p-3 pr-24 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 text-right placeholder-gray-400 focus:ring-2 focus:ring-alarm focus:border-transparent focus:outline-none transition-all duration-200"
-          />
-          {!time && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-sm">
-              زمان را انتخاب کنید
-            </span>
-          )}
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3">
-          <select
-            value={repeatType}
-            onChange={(e) => {
-              setRepeatType(e.target.value);
-              if (e.target.value !== 'weekly') setSelectedDays([]);
-            }}
-            className="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 text-right focus:ring-2 focus:ring-alarm focus:border-transparent focus:outline-none transition-all duration-200"
-          >
-            <option value="once">یکبار</option>
-            <option value="daily">روزانه</option>
-            <option value="weekly">هفتگی (روزهای خاص)</option>
-          </select>
-          
-          <button
-            type="submit"
-            className="px-6 py-3 bg-alarm cursor-pointer bg-gray-700 font-semibold rounded-lg text-gray-300 hover:bg-gray-600 focus:ring-2 focus:ring-alarm focus:outline-none transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!time}
-          >
-            اضافه کن و ارسال
-          </button>
-        </div>
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="relative w-full max-w-md"
+    >
+      <div className="absolute inset-0 bg-linear-to-r from-blue-600/20 to-blue-600/20 blur-3xl -z-10" />
 
-        {repeatType === 'weekly' && (
-          <div className="flex flex-wrap gap-2 justify-center">
-            {daysOfWeek.map(day => (
-              <label key={day.id} className="flex items-center space-x-1 space-x-reverse cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selectedDays.includes(day.id)}
-                  onChange={() => updateSelectedDays(day.id)}
-                  className="hidden"
-                />
-                <span className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
-                  selectedDays.includes(day.id)
-                    ? 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                    : 'bg-alarm bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-600'
-                }`}>
-                  {day.label}
-                </span>
-              </label>
-            ))}
+      <div className="backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl shadow-2xl sm:p-8 p-4">
+        <motion.div
+          animate={{ rotate: [0, 10, -10, 0] }}
+          transition={{ repeat: Infinity, duration: 6 }}
+          className="flex justify-center mb-4"
+        >
+          <div className="p-5 bg-linear-to-br from-blue-500 to-blue-600 rounded-3xl shadow-2xl">
+            <MdAccessAlarm size={38} className="text-white" />
           </div>
-        )}
-      </form>
-      
-      <ul className="space-y-3">
-        {alarms.map(alarm => (
-          <li
-            key={alarm.id}
-            className="flex justify-between items-center p-4 bg-gray-700 rounded-lg hover:bg-gray-600 transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            <div className="flex items-center gap-3">
-              <MdAccessAlarm 
-                size={20} 
-                className={`text-${(alarm.repeatType === 'once' && alarm.rung) ? 'gray-500' : 'alarm'}`} 
-              />
-              <span className={`font-medium ${(alarm.repeatType === 'once' && alarm.rung) ? 'text-gray-500 line-through' : 'text-gray-100'}`}>
-                {alarm.label} {alarm.repeatType === 'once' && alarm.rung ? '(زنگ خورده)' : ''}
-              </span>
-            </div>
-            <button
-              onClick={() => deleteAlarm(alarm.id)}
-              className="p-2 text-red-400 cursor-pointer hover:text-red-300 hover:bg-red-900 rounded-full transition-all duration-200 focus:ring-2 focus:ring-red-500 focus:outline-none"
-              aria-label="حذف آلارم"
+        </motion.div>
+
+        <h2 className="sm:text-xl text-lg font-bold text-center text-white mb-8 bg-clip-text bg-linear-to-r from-blue-400 to-blue-400">
+          آلارم‌ها
+        </h2>
+
+        <form onSubmit={addAlarm} className="space-y-5 mb-8">
+          <motion.div>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              required
+              className="w-full px-6 py-5 sm:text-lg text-md bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-4 focus:ring-blue-500/50 transition-all"
+            />
+          </motion.div>
+
+          <div className="flex gap-3">
+            <select
+              value={repeatType}
+              onChange={(e) => {
+                setRepeatType(e.target.value);
+                if (e.target.value !== "weekly") setSelectedDays([]);
+              }}
+              className="flex-1 px-5 py-5 text-base bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl text-white focus:outline-none focus:ring-4 focus:ring-blue-500/50"
             >
-              <MdDelete size={18} />
-            </button>
-          </li>
-        ))}
-      </ul>
-      {!alarms.length && (
-        <p className="text-center text-gray-400 mt-6 italic animate-fade-in">
-          هیچ آلارمی تنظیم نشده. یکی اضافه کنید!
-        </p>
-      )}
-    </div>
+              <option value="once" className="bg-gray-900 sm:text-lg text-md">
+                یکبار
+              </option>
+              <option value="daily" className="bg-gray-900 sm:text-lg text-md">
+                روزانه
+              </option>
+              <option value="weekly" className="bg-gray-900 sm:text-lg text-md">
+                هفتگی
+              </option>
+            </select>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              type="submit"
+              disabled={!time || createAlarm.isPending}
+              className="px-7 sm:text-md text-sm cursor-pointer py-5 bg-linear-to-r from-blue-600 to-blue-600 text-white font-bold rounded-2xl shadow-2xl flex items-center justify-center gap-2 disabled:opacity-70"
+            >
+              <MdAdd size={24} />
+              {createAlarm.isPending ? "..." : "افزودن"}
+            </motion.button>
+          </div>
+
+          <AnimatePresence>
+            {repeatType === "weekly" && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex flex-wrap gap-2 justify-center pt-2"
+              >
+                {daysOfWeek.map((day) => (
+                  <motion.button
+                    key={day.id}
+                    whileTap={{ scale: 0.9 }}
+                    type="button"
+                    onClick={() => toggleDay(day.id)}
+                    className={`w-10 h-10 rounded-full font-bold text-sm transition-all ${
+                      selectedDays.includes(day.id)
+                        ? "bg-linear-to-r from-blue-500 to-blue-500 text-white shadow-lg"
+                        : "bg-white/10 text-white/70 border border-white/20"
+                    }`}
+                  >
+                    {day.label}
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </form>
+
+        <div className="space-y-4 max-h-65 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pl-2">
+          <AnimatePresence>
+            {isLoading ? (
+              <p className="text-center text-white/50 py-6">
+                در حال بارگذاری...
+              </p>
+            ) : alarms.length === 0 ? (
+              <p className="text-center text-white/40 italic py-4">
+                هنوز آلارمی تنظیم نکردی
+              </p>
+            ) : (
+              alarms.map((alarm, i) => (
+                <motion.div
+                  key={alarm.id}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 30 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="group relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 flex items-center justify-between overflow-hidden"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl">
+                      <MdAccessAlarm size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="sm:text-xl text-lg font-bold text-white">
+                        {new Date(alarm.time).toISOString()?.split('T')[1]?.slice(0,5)}
+                      </p>
+                      <p className="sm:text-sm text-xs text-white/60">
+                        {alarm.is_repeat
+                          ? alarm.days?.length === 7
+                            ? "هر روز"
+                            : alarm.days
+                                ?.sort((a, b) => a - b)
+                                .map(
+                                  (dayId) =>
+                                    daysOfWeek.find((d) => d.id === dayId)
+                                      ?.label
+                                )
+                                .join(" ") || "—"
+                          : "یکبار"}
+                      </p>
+                    </div>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => deleteAlarm.mutate(alarm.id)}
+                    className="p-3 bg-red-600/20 rounded-full text-red-400 cursor-pointer transition-all"
+                  >
+                    <MdDelete size={20} />
+                  </motion.button>
+                </motion.div>
+              ))
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
