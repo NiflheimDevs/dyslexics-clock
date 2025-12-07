@@ -32,7 +32,7 @@ func (d *DeviceService) Login(ctx context.Context, username string, password str
 		return "", err
 	}
 	if err := d.SecretSauce.SauceReferee(deviceInfo.Password, password); err != nil {
-		panic(derror.New(derror.ErrTypeUnauthorized, "invalid password", err))
+		panic(derror.New(derror.ErrTypeNotFound, "user not found", err))
 	}
 	token, _ := d.JWTService.GenerateToken(deviceInfo.Id)
 	return token, nil
