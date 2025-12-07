@@ -118,7 +118,7 @@ func (dh *DeviceHandler) UpdateColor(w http.ResponseWriter, r *http.Request) {
 
 func (dh *DeviceHandler) UpdateVolume(w http.ResponseWriter, r *http.Request) {
 	type UpdateVolumeRequest struct {
-		Volume uint `json:"color" validator:"required,max=30,min=1"`
+		Volume uint `json:"volume" validator:"required,max=30,min=1"`
 	}
 
 	ctx := r.Context()
