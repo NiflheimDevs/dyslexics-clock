@@ -22,7 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ToastContainer 
       position="top-right" 
       className={"vazirmatn"}
-      autoClose={3000000}
+      autoClose={3000}
       hideProgressBar={false}
       newestOnTop={true}
       closeOnClick

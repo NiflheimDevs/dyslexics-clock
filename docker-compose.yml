@@ -1,5 +1,5 @@
 services:
-  dyslexics-frontend:
+  dyslexics_frontend:
     build:
       context: .
       # tags:
@@ -8,3 +8,5 @@ services:
     # container_name: frontend
     ports:
       - 3001:3001
+networks:
+  - dyslexic_backend_network
