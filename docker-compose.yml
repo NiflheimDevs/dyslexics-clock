@@ -4,7 +4,7 @@ services:
       context: .
       # tags:
       #   - ghcr.io/niflheimdevs/frontend
-    image: ghcr.io/niflheimdevs/dyslexics-clock
+    image: ghcr.io/niflheimdevs/dyslexics-clock/frontend
     # container_name: frontend
     ports:
       - 3001:3001
