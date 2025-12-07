@@ -1,0 +1,10 @@
+services:
+  frontend:
+    build:
+      context: .
+      # tags:
+      #   - ghcr.io/niflheimdevs/frontend
+    image: ghcr.io/niflheimdevs/dyslexics-clock
+    # container_name: frontend
+    ports:
+      - 3001:3001
