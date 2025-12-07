@@ -8,5 +8,7 @@ services:
     # container_name: frontend
     ports:
       - 3001:3001
+    networks:
+      - dyslexic_frontend_network
 networks:
-  - dyslexic_backend_network
+  dyslexic_frontend_network:

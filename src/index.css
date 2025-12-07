@@ -27,22 +27,15 @@ body {
   color: var(--text-color);
   transition: background-color 0.3s ease; 
   direction: rtl; 
-  font-family: 'Vazirmatn', sans-serif; 
 }
 
 .Toastify__toast-container {
   width: 320px;
-  font-family: 'Vazirmatn', sans-serif !important; 
   direction: rtl;
 }
 
 .Toastify__toast {
   font-family: "Vazirmatn", sans-serif !important;
-}
-
-.Toastify__toast-body {
-  font-family: "Vazirmatn", sans-serif !important;
-  line-height: 1.6 !important;
 }
 
 .Toastify__toast {
