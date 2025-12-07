@@ -4,6 +4,7 @@ import { login } from "../api/services";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { MdLogin, MdAlarm, MdVisibility, MdVisibilityOff } from "react-icons/md";
+import { toast } from "react-toastify";
 
 const Login = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState("");
@@ -22,7 +23,7 @@ const Login = ({ onLoginSuccess }) => {
       onLoginSuccess();
     },
     onError: () => {
-      alert("نام کاربری یا رمز نادرست است");
+      toast.error("نام کاربری یا رمز عبور اشتباه است.");  
     },
   });
 
