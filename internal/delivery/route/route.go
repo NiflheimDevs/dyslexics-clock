@@ -26,15 +26,17 @@ func RouteInit(app *wire.App) http.Handler {
 		r.Get("/", app.Handlers.AlarmHandler.GetAlarms)
 		r.Post("/", app.Handlers.AlarmHandler.CreateAlarm)
 		r.Delete("/{id}", app.Handlers.AlarmHandler.DeleteAlarm)
-		r.Put("/{id}", app.Handlers.AlarmHandler.UpdateAlarm)
+		r.Patch("/{id}", app.Handlers.AlarmHandler.UpdateAlarm)
 	})
 
 	mux.Post("/login", app.Handlers.DeviceHandler.Login)
 
 	mux.Route("/device", func(r chi.Router) {
 		r.Use(app.Middlewares.Auth.AuthRequired)
+		r.Get("/", app.Handlers.DeviceHandler.GetDevice)
 		r.Get("/color", app.Handlers.DeviceHandler.GetColor)
-		r.Put("/color", app.Handlers.DeviceHandler.UpdateColor)
+		r.Patch("/color", app.Handlers.DeviceHandler.UpdateColor)
+		r.Patch("/volume", app.Handlers.DeviceHandler.UpdateVolume)
 	})
 
 	return mux

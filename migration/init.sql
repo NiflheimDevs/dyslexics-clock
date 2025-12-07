@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS "devices" (
     "username" varchar(255) NOT NULL,
     "password" bytea NOT NULL,
     "color" text NOT NULL DEFAULT 'white',
+    "volume" INTEGER NOT NULL DEFAULT 20,
     "timezone" text NOT NULL DEFAULT 'UTC',
     "created_at" Timestamp WITH TIME ZONE NOT NULL DEFAULT now()
 );

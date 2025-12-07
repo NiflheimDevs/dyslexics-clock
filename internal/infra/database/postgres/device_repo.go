@@ -26,9 +26,9 @@ func (d *DeviceRepo) GetDeviceByUsername(ctx context.Context, username string) (
 }
 
 func (d *DeviceRepo) GetDeviceById(ctx context.Context, Id uint) (*model.Device, error) {
-	query := `SELECT id, username, password, color FROM devices WHERE id = $1`
+	query := `SELECT id, username, password, color, volume FROM devices WHERE id = $1`
 	var result model.Device
-	err := d.DB.QueryRow(ctx, query, Id).Scan(&result.ID, &result.Username, &result.Password, &result.Color)
+	err := d.DB.QueryRow(ctx, query, Id).Scan(&result.ID, &result.Username, &result.Password, &result.Color, &result.Volume)
 	if err != nil {
 		return nil, NormalizeDBError(err, "failed to get device")
 	}
@@ -40,3 +40,10 @@ func (d *DeviceRepo) UpdateColor(ctx context.Context, Id uint, color string) err
 	_, err := d.DB.Exec(ctx, query, color, Id)
 	return NormalizeDBError(err, "failed to update color")
 }
+
+func (d *DeviceRepo) UpdateVolume(ctx context.Context, Id uint, volume uint) error {
+	query := `UPDATE devices SET volume = $1 WHERE id = $2`
+	_, err := d.DB.Exec(ctx, query, volume, Id)
+	return NormalizeDBError(err, "failed to update volume")
+}
+

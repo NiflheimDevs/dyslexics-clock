@@ -54,6 +54,29 @@ func (dh *DeviceHandler) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(respond)
 }
 
+func (dh *DeviceHandler) GetDevice(w http.ResponseWriter, r *http.Request) {
+	type GetDeviceResponse struct {
+		Color  string `json:"color"`
+		Volume uint   `json:"volume"`
+	}
+	ctx := r.Context()
+	deviceID := ctx.Value(dh.Constants.Context.DeviceID).(uint)
+
+	device, err := dh.DeviceService.GetDeviceById(ctx, deviceID)
+	if err != nil {
+		panic(err)
+	}
+
+	respond := GetDeviceResponse{
+		Color:  device.Color,
+		Volume: device.Volume,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(respond)
+}
+
 func (dh *DeviceHandler) GetColor(w http.ResponseWriter, r *http.Request) {
 	type GetColorResponse struct {
 		Color string `json:"color"`
@@ -93,3 +116,20 @@ func (dh *DeviceHandler) UpdateColor(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (dh *DeviceHandler) UpdateVolume(w http.ResponseWriter, r *http.Request) {
+	type UpdateVolumeRequest struct {
+		Volume uint `json:"color" validator:"required,max=30,min=1"`
+	}
+
+	ctx := r.Context()
+	deviceID := ctx.Value(dh.Constants.Context.DeviceID).(uint)
+
+	req := Validated[UpdateVolumeRequest](dh.Validator, r)
+
+	err := dh.DeviceService.UpdateDeviceVolume(ctx, deviceID, req.Volume)
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

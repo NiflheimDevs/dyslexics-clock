@@ -5,6 +5,7 @@ import (
 
 	"github.com/NiflheimDevs/dyslexics-clock/internal/application/service"
 	derror "github.com/NiflheimDevs/dyslexics-clock/internal/domain/error"
+	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/model"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/pkg"
 	repository "github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository/postgres"
 )
@@ -46,6 +47,14 @@ func (d *DeviceService) GetDeviceColor(ctx context.Context, id uint) (string, er
 	return device.Color, nil
 }
 
+func (d *DeviceService) GetDeviceById(ctx context.Context, id uint) (*model.Device, error) {
+	return d.DeviceRepo.GetDeviceById(ctx, id)
+}
+
 func (d *DeviceService) UpdateDeviceColor(ctx context.Context, id uint, newColor string) error {
 	return d.DeviceRepo.UpdateColor(ctx, id, newColor)
+}
+
+func (d *DeviceService) UpdateDeviceVolume(ctx context.Context, id uint, newVolume uint) error {
+	return d.DeviceRepo.UpdateVolume(ctx, id, newVolume)
 }
