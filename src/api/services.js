@@ -18,4 +18,4 @@ export const updateDeviceColor = (color) =>
 export const updateDeviceVolume = (volume) =>
   api.patch("/device/volume", { volume });
 
-export const login = (credentials) => api.post("/login", { credentials });
+export const login = (credentials) => api.post("/login", credentials);
