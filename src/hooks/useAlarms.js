@@ -6,6 +6,8 @@ import {
   deleteAlarm,
   getDeviceColor,
   updateDeviceColor,
+  getDeviceVolume,
+  updateDeviceVolume,
 } from '../api/services';
 import { toast } from 'react-toastify';
 
@@ -40,6 +42,17 @@ export const useUpdateAlarm = () => {
   });
 };
 
+export const useUpdateVolume = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateDeviceVolume,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['deviceVolume']);
+      toast.success('میزان صدای دستگاه با موفقیت بروز شد');
+    },
+  });
+};
+
 export const useDeleteAlarm = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -56,6 +69,15 @@ export const useDeviceColor = () => {
     queryKey: ['deviceColor'],
     queryFn: getDeviceColor,
     select: (data) => data.data.color,
+  });
+};
+
+
+export const useDeviceVolume = () => {
+  return useQuery({
+    queryKey: ['deviceVolume'],
+    queryFn: getDeviceVolume,
+    select: (data) => data.data,
   });
 };
 

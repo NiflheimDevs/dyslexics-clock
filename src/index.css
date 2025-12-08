@@ -1,32 +1,31 @@
 @import "tailwindcss";
-@import '@fontsource/vazirmatn';
-
+@import "@fontsource/vazirmatn";
 
 @font-face {
-  font-family: 'Vazirmatn';
-  src: url('/fonts/Vazirmatn-Regular.woff2') format('woff2');
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-Regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Vazirmatn';
-  src: url('/fonts/Vazirmatn-Bold.woff2') format('woff2');
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-Bold.woff2") format("woff2");
   font-weight: 700;
   font-display: swap;
 }
 
 :root {
   --bg-color: #1f2937;
-  --text-color: #f9fafb; 
+  --text-color: #f9fafb;
   --card-bg: #374151;
-  --primary-color: #60a5fa; 
+  --primary-color: #60a5fa;
 }
 
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
-  transition: background-color 0.3s ease; 
-  direction: rtl; 
+  transition: background-color 0.3s ease;
+  direction: rtl;
 }
 
 .Toastify__toast-container {
@@ -39,16 +38,43 @@ body {
 }
 
 .Toastify__toast {
-  border-radius: 8px; 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
-  padding: 16px; 
-  font-size: 16px; 
-  line-height: 1.5; 
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .Toastify__toast--success {
-  background: #4caf50; 
+  background: #4caf50;
   color: white;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  background: oklch(54.6% 0.245 262.881);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 20px oklch(54.6% 0.245 262.881);
+  border: 3px solid white;
+  transition: all 0.3s ease;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  background: oklch(54.6% 0.245 262.881);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 20px oklch(54.6% 0.245 262.881);
+  border: 3px solid white;
+}
+
+.slider-thumb-glow:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 30px oklch(54.6% 0.245 262.881);
+  transform: scale(1.15);
 }
 
 .Toastify__toast--error {
@@ -67,7 +93,7 @@ body {
 }
 
 .Toastify__toast-theme--colored .Toastify__progress-bar {
-  background: rgba(255, 255, 255, 0.7); 
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .Toastify__close-button {
@@ -80,10 +106,7 @@ body {
 }
 
 .custom-bg {
-  background-color: var(
-    --custom-color,
-    var(--bg-color)
-  );
+  background-color: var(--custom-color, var(--bg-color));
 }
 
 @keyframes fadeIn {
@@ -105,7 +128,7 @@ body {
   direction: ltr;
 }
 
-input[type='time']::-webkit-calendar-picker-indicator {
-    background: none;
-    display: none;
+input[type="time"]::-webkit-calendar-picker-indicator {
+  background: none;
+  display: none;
 }
