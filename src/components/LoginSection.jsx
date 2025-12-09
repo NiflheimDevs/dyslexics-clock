@@ -22,7 +22,8 @@ const Login = ({ onLoginSuccess }) => {
       );
       onLoginSuccess();
     },
-    onError: () => {
+    onError: (e) => {
+      console.log(e)
       toast.error("نام کاربری یا رمز عبور اشتباه است.");  
     },
   });
