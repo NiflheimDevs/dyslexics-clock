@@ -24,7 +24,7 @@ api.interceptors.response.use(
 );
 
 api.interceptors.request.use((config) => {
-  if (config.url?.endsWith("/login")) {
+  if (config.url === "/login") {
     return config;
   }
   const token = localStorage.getItem("token");
