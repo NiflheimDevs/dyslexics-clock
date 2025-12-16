@@ -5,9 +5,7 @@ services:
     restart: unless-stopped
     ports:
       - "11883:1883"
-      
       - "19001:9001" 
-      
     volumes:
       - ./config/mosquitto.conf:/mosquitto/config
       - ./mosquitto/data:/mosquitto/data
@@ -21,7 +19,7 @@ services:
     ports:
       - "4000:80"   
     depends_on:
-      - mosquitto
+      - dys_mosquitto
     networks:
       - dyslexic_backend_network
 
