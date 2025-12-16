@@ -13,11 +13,15 @@ services:
     command: mosquitto -c /mosquitto/config/mosquitto.conf
     networks:
       - dyslexic_backend_network
-
   dys_mqtt-explorer:
-    image: toke/mosquitto
+    image: imnottechie/mqtt-explorer:latest
+    container_name: mqtt-dashboard
+    restart: unless-stopped
     ports:
-      - "4000:80"   
+      - "4000:80"         
+    environment:
+      - MQTT_HOST=mqtt-broker  # Connect to the mosquitto service
+      - MQTT_PORT=1883         # Use internal Docker network port
     depends_on:
       - dys_mosquitto
     networks:
