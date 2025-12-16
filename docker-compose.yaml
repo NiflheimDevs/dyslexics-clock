@@ -1,4 +1,30 @@
 services:
+  dys_mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "11883:1883"
+      
+      - "19001:9001" 
+      
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    command: mosquitto -c /mosquitto/config/mosquitto.conf
+    networks:
+      - dyslexic_backend_network
+
+  dys_mqtt-explorer:
+    image: toke/mosquitto
+    ports:
+      - "4000:80"   
+    depends_on:
+      - mosquitto
+    networks:
+      - dyslexic_backend_network
+
   dyslexic_db:
     image: postgres:latest
     container_name: dyslexic_postgres
