@@ -7,7 +7,7 @@ services:
       - "11883:1883"
       - "19001:9001" 
     volumes:
-      - ./config/mosquitto.conf:/mosquitto/config
+      - ./config/mosquitto:/mosquitto/config
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
     command: mosquitto -c /mosquitto/config/mosquitto.conf
