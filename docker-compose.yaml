@@ -21,7 +21,7 @@ services:
     ports:
       - "4000:80"
     environment:
-      - MQTT_BROKER=mosquitto # Connect to the mosquitto service
+      - MQTT_BROKER=dys_mosquitto # Connect to the mosquitto service
       - MQTT_PORT=1883 # Use internal Docker network port
     depends_on:
       - dys_mosquitto

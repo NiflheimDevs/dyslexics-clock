@@ -43,6 +43,17 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           source: "docker-compose.yaml"
           target: "/home/ubuntu/DyslexicsClock/backend"
+      - name: Clean and copy configs
+        uses: appleboy/ssh-action@v0.1.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            # Remove existing config directory
+            rm -rf /home/ubuntu/DyslexicsClock/backend/config
+            # Create fresh directory
+            mkdir -p /home/ubuntu/DyslexicsClock/backend/config/mosquitto
       
       - name: Copy configs
         uses: appleboy/scp-action@v0.1.0
