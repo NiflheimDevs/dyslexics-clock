@@ -51,7 +51,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             # Remove existing config directory
-            rm -rf /home/ubuntu/DyslexicsClock/backend/config
+            # rm -rf /home/ubuntu/DyslexicsClock/backend/config
             # Create fresh directory
             mkdir -p /home/ubuntu/DyslexicsClock/backend/config/mosquitto
       
