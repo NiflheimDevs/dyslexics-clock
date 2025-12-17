@@ -52,6 +52,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           source: "config/*"
           target: "/home/ubuntu/DyslexicsClock/backend"
+          overwrite: true
         
       - name: Copy init.sql
         uses: appleboy/scp-action@v0.1.0
