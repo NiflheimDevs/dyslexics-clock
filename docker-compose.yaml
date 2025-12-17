@@ -20,6 +20,7 @@ services:
     restart: unless-stopped
     ports:
       - "4000:80"
+      - "4001:5000"
     environment:
       - MQTT_BROKER=dys_mosquitto # Connect to the mosquitto service
       - MQTT_PORT=1883 # Use internal Docker network port
