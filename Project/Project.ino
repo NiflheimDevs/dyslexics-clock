@@ -11,6 +11,7 @@
 
 const uint8_t snoozePin = 26;
 volatile int32_t stopPin = 25;
+//HAHA
 
 CRGB leds[NUM_LEDS];
 RTC_DS3231 rtc;
