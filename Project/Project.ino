@@ -5,9 +5,9 @@
 #include <WiFiManager.h>
 
 #define FPSerial Serial1
-#define LED_PIN     16       
+#define LED_PIN     27       
 #define NUM_LEDS    121      
-#define BRIGHTNESS  100
+#define BRIGHTNESS  6
 
 const uint8_t snoozePin = 26;
 volatile int32_t stopPin = 25;
@@ -160,7 +160,7 @@ void showHours(uint8_t h) {
 
 void setup() {
   Serial.begin(115200);
-  setupWifi();
+  // setupWifi();
   setupRTC();
   setupLED();
   setupDfPlayer();
