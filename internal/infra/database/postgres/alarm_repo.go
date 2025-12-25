@@ -67,7 +67,7 @@ func(d *AlarmRepo) buildUpdateQuery(alarmID uint, deviceID uint ,input *dto.Upda
     }
     
     query := fmt.Sprintf(
-        "UPDATE alarms SET %s WHERE id = $%d AND device_id = $%d",
+        "UPDATE alarms SET %s WHERE id = $%d AND device_id = $%d RETURNING id, device_id, time, is_repeat, days",
         strings.Join(sets, ", "),
         argIndex,
 		argIndex+1,
@@ -77,17 +77,28 @@ func(d *AlarmRepo) buildUpdateQuery(alarmID uint, deviceID uint ,input *dto.Upda
     
     return query, args
 }
-func (d *AlarmRepo) UpdateAlarm(ctx context.Context, alarmID uint, deviceID uint, updateAlarm *dto.UpdateAlarm) (int64, error) {
+func (d *AlarmRepo) UpdateAlarm(ctx context.Context, alarmID uint, deviceID uint, updateAlarm *dto.UpdateAlarm) (*model.Alarm, error) {
 	// query := `UPDATE alarms SET time = $2, is_repeat = $3, days = $4 WHERE id = $1 AND device_id = $5`
 	alarmsBytes, err := json.Marshal(updateAlarm.RepeatingDays)
 	if err != nil {
-		return -1, derror.New(derror.ErrTypeBadRequest, "invalid repeating days", err)
+		return nil, derror.New(derror.ErrTypeBadRequest, "invalid repeating days", err)
 	}
 	
 	query, args := d.buildUpdateQuery(alarmID, deviceID, updateAlarm, alarmsBytes)
-	// res, err := d.DB.Exec(ctx, query, alarmID, updateAlarm.Time, updateAlarm.IsRepeat, alarmsBytes, deviceID)
-	res, err := d.DB.Exec(ctx, query, args...)
-	return res.RowsAffected(), NormalizeDBError(err, "failed to update alarm")
+
+	var updatedAlarm model.Alarm
+	var days []byte
+	err = d.DB.QueryRow(ctx, query, args...).Scan(&updatedAlarm.ID, &updatedAlarm.DeviceId, &updatedAlarm.Time, &updatedAlarm.IsRepeat, &days)
+	if err != nil {
+		return nil, NormalizeDBError(err, "failed to update alarm")
+	}
+
+	err = json.Unmarshal(days, &updatedAlarm.RepeatingDays)
+	if err != nil {
+		return nil, derror.New(derror.ErrTypeBadRequest, "invalid repeating days", err)
+	}
+
+	return &updatedAlarm, nil
 }
 
 func (d *AlarmRepo) GetAlarms(ctx context.Context, DeviceId uint) ([]model.Alarm, error) {

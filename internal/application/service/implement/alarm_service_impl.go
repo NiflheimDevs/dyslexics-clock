@@ -4,13 +4,15 @@ import (
 	"context"
 
 	"github.com/NiflheimDevs/dyslexics-clock/internal/application/dto"
+	"github.com/NiflheimDevs/dyslexics-clock/internal/application/service"
 	derror "github.com/NiflheimDevs/dyslexics-clock/internal/domain/error"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/model"
-	repository "github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository/postgres"
+	repository "github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository"
 )
 
 type AlarmService struct {
 	AlarmRepo repository.AlarmRepo
+	Publisher service.PublisherService
 }
 
 func NewAlarmService(AlarmRepo repository.AlarmRepo) *AlarmService {
@@ -38,13 +40,15 @@ func (a *AlarmService) DeleteAlarmById(ctx context.Context, alarmID uint, device
 	return nil
 }
 
-func (a *AlarmService) UpdateAlarm(ctx context.Context, alarmID uint, deviceID uint, updateAlarm *dto.UpdateAlarm) error {
-	rowsAffected, err := a.AlarmRepo.UpdateAlarm(ctx, alarmID, deviceID, updateAlarm)
+func (a *AlarmService) UpdateAlarm(ctx context.Context, alarmID uint, deviceID uint, updateAlarm *dto.UpdateAlarm) (*model.Alarm, error) {
+	alarm, err := a.AlarmRepo.UpdateAlarm(ctx, alarmID, deviceID, updateAlarm)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if rowsAffected == 0 {
-		return derror.New(derror.ErrTypeNotFound, "alarm not found", nil)
+	if alarm == nil {
+		return nil, derror.New(derror.ErrTypeNotFound, "alarm not found", nil)
 	}
-	return nil
+
+	go a.Publisher.PublishAlarmUpdate(deviceID, alarm)
+	return alarm, nil
 }

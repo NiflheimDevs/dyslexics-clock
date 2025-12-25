@@ -7,9 +7,9 @@ import (
 )
 
 type Env struct {
-	PGDB    PGDatabase
-	Server  Server
-	Kafka   KafkaBroker
+	PGDB   PGDatabase
+	Server Server
+	MQTT   MQTTBroker
 }
 
 type PGDatabase struct {
@@ -20,14 +20,10 @@ type PGDatabase struct {
 	DB_Pass string
 }
 
-type KafkaBroker struct {
-	Port    string
-	Address string
-}
-
-type ElasticSearch struct {
-	Port    string
-	Address string
+type MQTTBroker struct {
+	Port     string
+	Address  string
+	ClientID string
 }
 
 type Server struct {
@@ -50,7 +46,7 @@ func NewEnvironment() *Env {
 		Server: Server{
 			IP_Addr: os.Getenv("IP_ADDR"),
 		},
-		Kafka: KafkaBroker{
+		MQTT: MQTTBroker{
 			Port:    os.Getenv("KAFKA_PORT"),
 			Address: os.Getenv("KAFKA_ADDR"),
 		},

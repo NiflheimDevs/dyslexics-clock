@@ -14,7 +14,7 @@ import (
 	"github.com/NiflheimDevs/dyslexics-clock/internal/delivery/middleware/authentication"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/delivery/middleware/panicwall"
 	pkg2 "github.com/NiflheimDevs/dyslexics-clock/internal/domain/pkg"
-	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository/postgres"
+	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/infra/database/driver"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/infra/database/postgres"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/pkg"

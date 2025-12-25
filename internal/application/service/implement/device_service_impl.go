@@ -7,7 +7,7 @@ import (
 	derror "github.com/NiflheimDevs/dyslexics-clock/internal/domain/error"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/model"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/pkg"
-	repository "github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository/postgres"
+	repository "github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository"
 )
 
 type DeviceService struct {
