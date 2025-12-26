@@ -367,7 +367,7 @@ AlarmHeap alarmHeap;
 
 void setup() {
   Serial.begin(115200);
-  // setupWifi();
+  setupWifi();
   setupRTC();
   setupLED();
   setupDfPlayer();
@@ -437,10 +437,11 @@ void setupWifi() {
   wifiManager.setDebugOutput(true);
   wifiManager.setConfigPortalTimeout(180);
 
-  if (!wifiManager.autoConnect("ESP32-Hotspot", "12345678")) {
+  bool connected = wifiManager.autoConnect("DyslexicClock-Setup", "12345678");
+  if (!connected) {
     Serial.println("Wifi, failed!");
-    ESP.restart();
   }
+  WiFi.setAutoReconnect(true);
 }
 
 void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -454,7 +455,6 @@ void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
       break;
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
       Serial.println("WiFi, disconnected!");
-      WiFi.reconnect();
       break;
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
       Serial.print("WiFi, got IP");
