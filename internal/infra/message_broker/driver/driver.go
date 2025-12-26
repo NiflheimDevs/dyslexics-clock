@@ -2,7 +2,6 @@ package driver
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/NiflheimDevs/dyslexics-clock/bootstrap"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
