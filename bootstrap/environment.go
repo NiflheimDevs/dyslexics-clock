@@ -47,8 +47,9 @@ func NewEnvironment() *Env {
 			IP_Addr: os.Getenv("IP_ADDR"),
 		},
 		MQTT: MQTTBroker{
-			Port:    os.Getenv("KAFKA_PORT"),
-			Address: os.Getenv("KAFKA_ADDR"),
+			Port:    os.Getenv("MQTT_PORT"),
+			Address: os.Getenv("MQTT_ADDR"),
+			ClientID: os.Getenv("MQTT_CLIENT_ID"),
 		},
 	}
 }

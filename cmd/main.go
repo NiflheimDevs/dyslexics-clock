@@ -12,13 +12,19 @@ import (
 func main() {
 	di := bootstrap.Get()
 
-	app ,err :=wire.InitApp(di)
+	app, err := wire.InitApp(di)
 	if err != nil {
-		panic (err)
+		panic(err)
 	}
-	
+
+	go func() {
+		if err := app.DeviceEventSubscriber.Subscribe(); err != nil {
+			log.Fatalf("MQTT DeviceEventSubscriber failed: %v", err)
+		}
+	}()
+
 	log.Printf("Application is running on port%s", di.Const.Port)
-	
+
 	server := &http.Server{
 		Addr:    di.Const.Port,
 		Handler: route.RouteInit(app),
@@ -28,5 +34,4 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 }

@@ -13,10 +13,13 @@ import (
 	"github.com/NiflheimDevs/dyslexics-clock/internal/delivery/handler"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/delivery/middleware/authentication"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/delivery/middleware/panicwall"
+	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/message_broker"
 	pkg2 "github.com/NiflheimDevs/dyslexics-clock/internal/domain/pkg"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/infra/database/driver"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/infra/database/postgres"
+	driver2 "github.com/NiflheimDevs/dyslexics-clock/internal/infra/message_broker/driver"
+	"github.com/NiflheimDevs/dyslexics-clock/internal/infra/message_broker/mosquitto"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/pkg"
 	"github.com/google/wire"
 )
@@ -45,9 +48,14 @@ func InitApp(di *bootstrap.Di) (*App, error) {
 		PanicWall: panicWall,
 		Auth:      authentication,
 	}
+	client := driver2.ConnectMosquitto(di)
+	requestPublisher := mosquitto.NewRequestPublisher(client)
+	deviceEventService := serviceimpl.NewDeviceEventService(alarmRepo, requestPublisher, deviceRepo)
+	deviceEventSubscriber := mosquitto.NewDeviceEventSubscriber(client, deviceEventService)
 	app := &App{
-		Handlers:    handlers,
-		Middlewares: middlewares,
+		Handlers:              handlers,
+		Middlewares:           middlewares,
+		DeviceEventSubscriber: deviceEventSubscriber,
 	}
 	return app, nil
 }
@@ -60,7 +68,9 @@ var RepositoryProviderSet = wire.NewSet(repositoryimpl.NewDeviceRepo, repository
 
 var PkgProviderSet = wire.NewSet(pkg.NewValidatorWrapper, pkg.NewSecretSauce, wire.Bind(new(pkg2.SecretSauce), new(*pkg.SecretSauce)), wire.Bind(new(pkg2.Validator), new(*pkg.ValidatorWrapper)))
 
-var ServiceProviderSet = wire.NewSet(serviceimpl.NewDeviceService, serviceimpl.NewAlarmService, serviceimpl.NewJWT, wire.Bind(new(service.DeviceService), new(*serviceimpl.DeviceService)), wire.Bind(new(service.AlarmService), new(*serviceimpl.AlarmService)), wire.Bind(new(service.JWT), new(*serviceimpl.JWT)))
+var ServiceProviderSet = wire.NewSet(serviceimpl.NewDeviceService, serviceimpl.NewAlarmService, serviceimpl.NewJWT, serviceimpl.NewDeviceEventService, wire.Bind(new(service.DeviceService), new(*serviceimpl.DeviceService)), wire.Bind(new(service.AlarmService), new(*serviceimpl.AlarmService)), wire.Bind(new(service.JWT), new(*serviceimpl.JWT)), wire.Bind(new(service.DeviceEventService), new(*serviceimpl.DeviceEventService)))
+
+var MessageBrokerProviderSet = wire.NewSet(driver2.ConnectMosquitto, mosquitto.NewRequestPublisher, mosquitto.NewDeviceEventSubscriber, mosquitto.NewAlarmEventPublisher, mosquitto.NewTimePublisher, wire.Bind(new(messagebroker.RequestPublisher), new(*mosquitto.RequestPublisher)), wire.Bind(new(messagebroker.DeviceEventSubscriber), new(*mosquitto.DeviceEventSubscriber)), wire.Bind(new(messagebroker.AlarmEventPublisher), new(*mosquitto.AlarmEventPublisher)), wire.Bind(new(messagebroker.TimePublisher), new(*mosquitto.TimePublisher)))
 
 var HandlerProviderSet = wire.NewSet(handler.NewAlarmHandler, handler.NewDeviceHandler, wire.Struct(new(Handlers), "*"))
 
@@ -73,6 +83,7 @@ var ProviderSet = wire.NewSet(
 	DatabaseProviderSet,
 	RepositoryProviderSet,
 	ServiceProviderSet,
+	MessageBrokerProviderSet,
 	HandlerProviderSet,
 	MiddlewareProviderSet,
 )
@@ -98,4 +109,6 @@ type Middlewares struct {
 type App struct {
 	Handlers    *Handlers
 	Middlewares *Middlewares
+	// New field for the subscriber to be initialized
+	DeviceEventSubscriber messagebroker.DeviceEventSubscriber
 }

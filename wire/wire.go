@@ -1,5 +1,5 @@
-//go:build wireinject && ignore
-// +build wireinject,ignore
+//go:build wireinject
+// +build wireinject
 
 package wire
 
@@ -10,10 +10,13 @@ import (
 	"github.com/NiflheimDevs/dyslexics-clock/internal/delivery/handler"
 	midauth "github.com/NiflheimDevs/dyslexics-clock/internal/delivery/middleware/authentication"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/delivery/middleware/panicwall"
+	domainmessagebroker "github.com/NiflheimDevs/dyslexics-clock/internal/domain/message_broker" // New Import
 	domainpkg "github.com/NiflheimDevs/dyslexics-clock/internal/domain/pkg"
-	repository "github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository/postgres"
+	repository "github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/infra/database/driver"
 	repositoryimpl "github.com/NiflheimDevs/dyslexics-clock/internal/infra/database/postgres"
+	messagebrokerdriver "github.com/NiflheimDevs/dyslexics-clock/internal/infra/message_broker/driver" // New Import
+	mosquittoimpl "github.com/NiflheimDevs/dyslexics-clock/internal/infra/message_broker/mosquitto" // New Import
 	"github.com/NiflheimDevs/dyslexics-clock/internal/pkg"
 	"github.com/google/wire"
 )
@@ -41,10 +44,25 @@ var ServiceProviderSet = wire.NewSet(
 	serviceimpl.NewDeviceService,
 	serviceimpl.NewAlarmService,
 	serviceimpl.NewJWT,
+	serviceimpl.NewDeviceEventService, // New Service
 
 	wire.Bind(new(service.DeviceService), new(*serviceimpl.DeviceService)),
 	wire.Bind(new(service.AlarmService), new(*serviceimpl.AlarmService)),
 	wire.Bind(new(service.JWT), new(*serviceimpl.JWT)),
+	wire.Bind(new(service.DeviceEventService), new(*serviceimpl.DeviceEventService)), // New Service Binding
+)
+
+var MessageBrokerProviderSet = wire.NewSet( // New Provider Set
+	messagebrokerdriver.ConnectMosquitto, // Provide MQTT Client
+	mosquittoimpl.NewRequestPublisher,
+	mosquittoimpl.NewDeviceEventSubscriber,
+	mosquittoimpl.NewAlarmEventPublisher, // This was already present, but good to group
+	mosquittoimpl.NewTimePublisher, // This was already present, but good to group
+
+	wire.Bind(new(domainmessagebroker.RequestPublisher), new(*mosquittoimpl.RequestPublisher)),
+	wire.Bind(new(domainmessagebroker.DeviceEventSubscriber), new(*mosquittoimpl.DeviceEventSubscriber)),
+	wire.Bind(new(domainmessagebroker.AlarmEventPublisher), new(*mosquittoimpl.AlarmEventPublisher)),
+	wire.Bind(new(domainmessagebroker.TimePublisher), new(*mosquittoimpl.TimePublisher)),
 )
 
 var HandlerProviderSet = wire.NewSet(
@@ -66,6 +84,7 @@ var ProviderSet = wire.NewSet(
 	DatabaseProviderSet,
 	RepositoryProviderSet,
 	ServiceProviderSet,
+	MessageBrokerProviderSet, // Add new provider set
 	HandlerProviderSet,
 	MiddlewareProviderSet,
 )
@@ -91,6 +110,7 @@ type Middlewares struct {
 type App struct {
 	Handlers    *Handlers
 	Middlewares *Middlewares
+	DeviceEventSubscriber domainmessagebroker.DeviceEventSubscriber
 }
 
 func InitApp(di *bootstrap.Di) (*App, error) {
