@@ -9,7 +9,9 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
-const deviceRegistrationTopic = "devices/register" // Topic where devices post their IDs
+const deviceGetAllAlarmsTopic = "devices/all-alarms" // Topic where devices post their IDs for getting all alarms
+const deviceGetColorTopic = "devices/color" // Topic where devices post their IDs for getting their color
+
 
 type DeviceEventSubscriber struct {
 	client             mqtt.Client
@@ -26,9 +28,9 @@ func NewDeviceEventSubscriber(client mqtt.Client, deviceEventService service.Dev
 }
 
 func (s *DeviceEventSubscriber) Subscribe() error {
-	log.Printf("Subscribing to MQTT topic: %s", deviceRegistrationTopic)
+	log.Printf("Subscribing to MQTT topic: %s", deviceGetAllAlarmsTopic)
 
-	token := s.client.Subscribe(deviceRegistrationTopic, s.qos, func(client mqtt.Client, msg mqtt.Message) {
+	token := s.client.Subscribe(deviceGetAllAlarmsTopic, s.qos, func(client mqtt.Client, msg mqtt.Message) {
 		deviceID := string(msg.Payload())
 		log.Printf("Received message on topic '%s': Device ID '%s'", msg.Topic(), deviceID)
 
@@ -45,6 +47,27 @@ func (s *DeviceEventSubscriber) Subscribe() error {
 		return token.Error()
 	}
 
-	log.Printf("Successfully subscribed to topic: %s", deviceRegistrationTopic)
+	log.Printf("Successfully subscribed to topic: %s", deviceGetAllAlarmsTopic)
+
+	log.Printf("Subscribing to MQTT topic: %s", deviceGetColorTopic)
+
+	token = s.client.Subscribe(deviceGetColorTopic, s.qos, func(client mqtt.Client, msg mqtt.Message) {
+		deviceID := string(msg.Payload())
+		log.Printf("Received message on topic '%s': Device ID '%s'", msg.Topic(), deviceID)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
+		defer cancel()
+
+		if err := s.deviceEventService.HandleGetColorMessage(ctx, deviceID); err != nil {
+			log.Printf("Error handling device message for device ID '%s': %v", deviceID, err)
+		}
+	})
+
+	token.Wait()
+	if token.Error() != nil {
+		return token.Error()
+	}
+
+	log.Printf("Successfully subscribed to topic: %s", deviceGetColorTopic)
 	return nil
 }
