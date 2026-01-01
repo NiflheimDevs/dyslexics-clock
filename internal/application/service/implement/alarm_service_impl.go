@@ -1,6 +1,7 @@
 package serviceimpl
 
 import (
+	"fmt"
 	"context"
 
 	"github.com/NiflheimDevs/dyslexics-clock/internal/application/dto"
@@ -26,7 +27,13 @@ func (a *AlarmService) GetAlarms(ctx context.Context, DeviceId uint) ([]model.Al
 }
 
 func (a *AlarmService) InsertAlarm(ctx context.Context, alarm *model.Alarm) error {
-	return a.AlarmRepo.InsertAlarm(ctx, alarm)
+	err := a.AlarmRepo.InsertAlarm(ctx, alarm)
+	if err != nil {
+		return err
+	}
+
+	go a.Publisher.PublishAlarm(alarm.DeviceId, alarm)
+	return nil
 }
 
 func (a *AlarmService) DeleteAlarmById(ctx context.Context, alarmID uint, deviceID uint) error {
@@ -37,6 +44,8 @@ func (a *AlarmService) DeleteAlarmById(ctx context.Context, alarmID uint, device
 	if rowsAffected == 0 {
 		return derror.New(derror.ErrTypeNotFound, "alarm not found", nil)
 	}
+
+	go a.Publisher.PublishAlarmDelete(fmt.Sprint(deviceID), fmt.Sprint(alarmID))
 	return nil
 }
 
