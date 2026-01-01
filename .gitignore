@@ -9,3 +9,5 @@ internal
 .env
 
 .ccls
+
+.cache

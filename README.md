@@ -2,4 +2,4 @@
 
 
 
-pio run -t compiledb for compile_command.json
+`pio run -t compiledb` for compile_command.json
