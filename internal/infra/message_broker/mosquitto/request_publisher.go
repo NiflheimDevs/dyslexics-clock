@@ -53,3 +53,16 @@ func (p *RequestPublisher) PublishColor(deviceID string, color string) error {
 	}
 	return token.Error()
 }
+
+func (p *RequestPublisher) PublishVolume(deviceID string, volume uint) error {
+	topic := fmt.Sprintf("devices/%s/alarms", deviceID)
+
+	token := p.client.Publish(topic, p.qos, false, volume)
+	token.Wait() // Wait for the publication to complete
+	if token.Error() != nil {
+		log.Printf("Error publishing volume for device %s to topic %s: %v", deviceID, topic, token.Error())
+	} else {
+		log.Printf("Published %dvolume for device %s to topic %s", volume, deviceID, topic)
+	}
+	return token.Error()
+}

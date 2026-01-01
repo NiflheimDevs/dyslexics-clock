@@ -5,7 +5,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/message_broker"
+	messagebroker "github.com/NiflheimDevs/dyslexics-clock/internal/domain/message_broker"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository"
 )
 
@@ -67,4 +67,24 @@ func (s *DeviceEventService) HandleGetColorMessage(ctx context.Context, deviceID
 	}
 
 	return s.requestPublisher.PublishColor(deviceID, device.Color)
+}
+
+func (s *DeviceEventService) HandleGetVolumeMessage(ctx context.Context, deviceID string) error {
+	log.Printf("Received get volume device message for device ID: %s", deviceID)
+
+	// Convert deviceID string to uint
+	id, err := strconv.ParseUint(deviceID, 10, 64)
+	if err != nil {
+		log.Printf("Error converting device ID '%s' to uint: %v", deviceID, err)
+		return err // Or a more specific error type
+	}
+	deviceUintID := uint(id)
+
+	device, err := s.deviceRepo.GetDeviceById(ctx, deviceUintID)
+	if err != nil {
+		log.Printf("Error getting alarms for device %s: %v", deviceID, err)
+		return err
+	}
+
+	return s.requestPublisher.PublishVolume(deviceID, device.Volume)
 }
