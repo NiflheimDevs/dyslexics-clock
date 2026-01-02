@@ -2,6 +2,7 @@ package serviceimpl
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/NiflheimDevs/dyslexics-clock/internal/application/service"
 	derror "github.com/NiflheimDevs/dyslexics-clock/internal/domain/error"
@@ -13,6 +14,7 @@ import (
 type DeviceService struct {
 	SecretSauce pkg.SecretSauce
 	DeviceRepo  repository.DeviceRepo
+	Publisher   service.PublisherService
 	JWTService  service.JWT
 }
 
@@ -42,7 +44,7 @@ func (d *DeviceService) Login(ctx context.Context, username string, password str
 func (d *DeviceService) GetDeviceColor(ctx context.Context, id uint) (string, error) {
 	device, err := d.DeviceRepo.GetDeviceById(ctx, id)
 	if err != nil {
-		return "", err 
+		return "", err
 	}
 	return device.Color, nil
 }
@@ -52,9 +54,19 @@ func (d *DeviceService) GetDeviceById(ctx context.Context, id uint) (*model.Devi
 }
 
 func (d *DeviceService) UpdateDeviceColor(ctx context.Context, id uint, newColor string) error {
-	return d.DeviceRepo.UpdateColor(ctx, id, newColor)
+	err := d.DeviceRepo.UpdateColor(ctx, id, newColor)
+	if err != nil {
+		return err
+	}
+	go d.Publisher.PublishColor(fmt.Sprint(id), newColor)
+	return nil
 }
 
 func (d *DeviceService) UpdateDeviceVolume(ctx context.Context, id uint, newVolume uint) error {
-	return d.DeviceRepo.UpdateVolume(ctx, id, newVolume)
+	err := d.DeviceRepo.UpdateVolume(ctx, id, newVolume)
+	if err != nil {
+		return err
+	}
+	go d.Publisher.PublishVolume(fmt.Sprint(id), newVolume)
+	return nil
 }
