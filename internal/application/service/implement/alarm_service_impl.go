@@ -16,9 +16,10 @@ type AlarmService struct {
 	Publisher service.PublisherService
 }
 
-func NewAlarmService(AlarmRepo repository.AlarmRepo) *AlarmService {
+func NewAlarmService(AlarmRepo repository.AlarmRepo, p service.PublisherService) *AlarmService {
 	return &AlarmService{
 		AlarmRepo: AlarmRepo,
+		Publisher: p,
 	}
 }
 

@@ -30,13 +30,18 @@ func InitApp(di *bootstrap.Di) (*App, error) {
 	constants := ProvideConstants(di)
 	pool := driver.ConnectSQL(di)
 	alarmRepo := repositoryimpl.NewAlarmRepo(pool)
-	alarmService := serviceimpl.NewAlarmService(alarmRepo)
+	client := driver2.ConnectMosquitto(di)
+	alarmEventPublisher := mosquitto.NewAlarmEventPublisher(client)
+	timePublisher := mosquitto.NewTimePublisher(client)
+	requestPublisher := mosquitto.NewRequestPublisher(client)
+	publisherService := serviceimpl.NewPublisherService(alarmEventPublisher, timePublisher, requestPublisher)
+	alarmService := serviceimpl.NewAlarmService(alarmRepo, publisherService)
 	validatorWrapper := pkg.NewValidatorWrapper()
 	alarmHandler := handler.NewAlarmHandler(constants, alarmService, validatorWrapper)
 	deviceRepo := repositoryimpl.NewDeviceRepo(pool)
 	secretSauce := pkg.NewSecretSauce()
 	jwt := serviceimpl.NewJWT(constants)
-	deviceService := serviceimpl.NewDeviceService(deviceRepo, secretSauce, jwt)
+	deviceService := serviceimpl.NewDeviceService(deviceRepo, secretSauce, jwt, publisherService)
 	deviceHandler := handler.NewDeviceHandler(constants, deviceService, validatorWrapper)
 	handlers := &Handlers{
 		AlarmHandler:  alarmHandler,
@@ -48,8 +53,6 @@ func InitApp(di *bootstrap.Di) (*App, error) {
 		PanicWall: panicWall,
 		Auth:      authentication,
 	}
-	client := driver2.ConnectMosquitto(di)
-	requestPublisher := mosquitto.NewRequestPublisher(client)
 	deviceEventService := serviceimpl.NewDeviceEventService(alarmRepo, requestPublisher, deviceRepo)
 	deviceEventSubscriber := mosquitto.NewDeviceEventSubscriber(client, deviceEventService)
 	app := &App{

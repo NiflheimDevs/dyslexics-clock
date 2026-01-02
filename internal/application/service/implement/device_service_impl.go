@@ -21,11 +21,13 @@ type DeviceService struct {
 func NewDeviceService(deviceRepo repository.DeviceRepo,
 	secretSauce pkg.SecretSauce,
 	jwtService service.JWT,
+	p service.PublisherService,
 ) *DeviceService {
 	return &DeviceService{
 		DeviceRepo:  deviceRepo,
 		SecretSauce: secretSauce,
 		JWTService:  jwtService,
+		Publisher:   p,
 	}
 }
 
