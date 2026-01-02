@@ -68,7 +68,7 @@ var RepositoryProviderSet = wire.NewSet(repositoryimpl.NewDeviceRepo, repository
 
 var PkgProviderSet = wire.NewSet(pkg.NewValidatorWrapper, pkg.NewSecretSauce, wire.Bind(new(pkg2.SecretSauce), new(*pkg.SecretSauce)), wire.Bind(new(pkg2.Validator), new(*pkg.ValidatorWrapper)))
 
-var ServiceProviderSet = wire.NewSet(serviceimpl.NewDeviceService, serviceimpl.NewAlarmService, serviceimpl.NewJWT, serviceimpl.NewDeviceEventService, wire.Bind(new(service.DeviceService), new(*serviceimpl.DeviceService)), wire.Bind(new(service.AlarmService), new(*serviceimpl.AlarmService)), wire.Bind(new(service.JWT), new(*serviceimpl.JWT)), wire.Bind(new(service.DeviceEventService), new(*serviceimpl.DeviceEventService)))
+var ServiceProviderSet = wire.NewSet(serviceimpl.NewDeviceService, serviceimpl.NewAlarmService, serviceimpl.NewJWT, serviceimpl.NewDeviceEventService, serviceimpl.NewPublisherService, wire.Bind(new(service.DeviceService), new(*serviceimpl.DeviceService)), wire.Bind(new(service.AlarmService), new(*serviceimpl.AlarmService)), wire.Bind(new(service.JWT), new(*serviceimpl.JWT)), wire.Bind(new(service.DeviceEventService), new(*serviceimpl.DeviceEventService)), wire.Bind(new(service.PublisherService), new(*serviceimpl.PublisherService)))
 
 var MessageBrokerProviderSet = wire.NewSet(driver2.ConnectMosquitto, mosquitto.NewRequestPublisher, mosquitto.NewDeviceEventSubscriber, mosquitto.NewAlarmEventPublisher, mosquitto.NewTimePublisher, wire.Bind(new(messagebroker.RequestPublisher), new(*mosquitto.RequestPublisher)), wire.Bind(new(messagebroker.DeviceEventSubscriber), new(*mosquitto.DeviceEventSubscriber)), wire.Bind(new(messagebroker.AlarmEventPublisher), new(*mosquitto.AlarmEventPublisher)), wire.Bind(new(messagebroker.TimePublisher), new(*mosquitto.TimePublisher)))
 
@@ -107,8 +107,7 @@ type Middlewares struct {
 }
 
 type App struct {
-	Handlers    *Handlers
-	Middlewares *Middlewares
-	// New field for the subscriber to be initialized
+	Handlers              *Handlers
+	Middlewares           *Middlewares
 	DeviceEventSubscriber messagebroker.DeviceEventSubscriber
 }

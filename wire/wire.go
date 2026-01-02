@@ -45,11 +45,13 @@ var ServiceProviderSet = wire.NewSet(
 	serviceimpl.NewAlarmService,
 	serviceimpl.NewJWT,
 	serviceimpl.NewDeviceEventService, // New Service
+	serviceimpl.NewPublisherService,
 
 	wire.Bind(new(service.DeviceService), new(*serviceimpl.DeviceService)),
 	wire.Bind(new(service.AlarmService), new(*serviceimpl.AlarmService)),
 	wire.Bind(new(service.JWT), new(*serviceimpl.JWT)),
 	wire.Bind(new(service.DeviceEventService), new(*serviceimpl.DeviceEventService)), // New Service Binding
+	wire.Bind(new(service.PublisherService), new(*serviceimpl.PublisherService)),
 )
 
 var MessageBrokerProviderSet = wire.NewSet( // New Provider Set

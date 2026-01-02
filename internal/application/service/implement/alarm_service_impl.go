@@ -1,8 +1,8 @@
 package serviceimpl
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 
 	"github.com/NiflheimDevs/dyslexics-clock/internal/application/dto"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/application/service"
@@ -32,7 +32,7 @@ func (a *AlarmService) InsertAlarm(ctx context.Context, alarm *model.Alarm) erro
 		return err
 	}
 
-	go a.Publisher.PublishAlarm(alarm.DeviceId, alarm)
+	go a.Publisher.PublishAlarm(fmt.Sprint(alarm.DeviceId), alarm)
 	return nil
 }
 
@@ -58,6 +58,6 @@ func (a *AlarmService) UpdateAlarm(ctx context.Context, alarmID uint, deviceID u
 		return nil, derror.New(derror.ErrTypeNotFound, "alarm not found", nil)
 	}
 
-	go a.Publisher.PublishAlarmUpdate(deviceID, alarm)
+	go a.Publisher.PublishAlarmUpdate(fmt.Sprint(deviceID), alarm)
 	return alarm, nil
 }
