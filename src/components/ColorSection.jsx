@@ -3,11 +3,26 @@ import { HexColorPicker } from "react-colorful";
 import { useDeviceColor, useUpdateColor } from "../hooks/useAlarms";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const ColorSection = () => {
   const { data: color, isLoading } = useDeviceColor();
   const mutation = useUpdateColor();
-  const currentColor = color;
+
+  // Always start with a valid color
+  const [localColor, setLocalColor] = useState("#000000");
+
+  // Sync API color when it loads
+  useEffect(() => {
+    if (typeof color === "string") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLocalColor(color);
+    }
+  }, [color]);
+
+  const handleSubmit = () => {
+    mutation.mutate(localColor);
+  };
 
   return (
     <motion.div
@@ -19,6 +34,7 @@ const ColorSection = () => {
       <div className="absolute inset-0 bg-linear-to-r from-blue-600/20 to-blue-600/20 blur-3xl -z-10" />
 
       <div className="backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl shadow-2xl sm:p-8 p-4">
+        {/* Icon */}
         <motion.div
           animate={{ rotate: [0, 12, -12, 0] }}
           transition={{ repeat: Infinity, duration: 6 }}
@@ -33,6 +49,7 @@ const ColorSection = () => {
           رنگ دستگاه
         </h2>
 
+        {/* Color Picker */}
         <div className="mb-8 flex justify-center">
           <motion.div
             animate={{
@@ -46,13 +63,14 @@ const ColorSection = () => {
             className="p-4 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20"
           >
             <HexColorPicker
-              color={currentColor}
-              onChange={(c) => mutation.mutate(c)}
-              className="w-56! h-56!"   
+              color={localColor}
+              onChange={setLocalColor}
+              className="w-56! h-56!"
             />
           </motion.div>
         </div>
 
+        {/* Pending text */}
         {mutation.isPending && (
           <motion.p
             animate={{ opacity: [0.6, 1, 0.6] }}
@@ -62,13 +80,26 @@ const ColorSection = () => {
             در حال اعمال رنگ...
           </motion.p>
         )}
-        
-        <motion.div
-          className="p-5 bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl text-center"
-        >
+
+        {/* Submit button (same pattern as VolumeSection) */}
+        <div className="flex w-full mb-6 justify-center items-center">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            type="button"
+            onClick={handleSubmit}
+            disabled={mutation.isPending}
+            className="px-6 sm:text-lg text-md cursor-pointer py-4 bg-linear-to-r from-blue-600 to-blue-600 text-white font-semibold rounded-2xl shadow-2xl flex items-center justify-center gap-2 disabled:opacity-70"
+          >
+            {mutation.isPending ? "..." : "تغییر رنگ"}
+          </motion.button>
+        </div>
+
+        {/* Current color */}
+        <motion.div className="p-5 bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl text-center">
           <p className="text-white/70 sm:text-sm text-xs mb-1">رنگ فعلی</p>
           <p className="sm:text-2xl text-xl font-mono tracking-wider text-white">
-            {isLoading ? "..." : currentColor.toUpperCase()}
+            {isLoading ? "..." : localColor.toUpperCase()}
           </p>
         </motion.div>
       </div>

@@ -2,14 +2,22 @@ import { MdVolumeUp } from "react-icons/md";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { useDeviceVolume, useUpdateVolume } from "../hooks/useAlarms";
-import { useState } from "react";
-import { MdAdd } from "react-icons/md";
+import { useEffect, useState } from "react";
 
 const VolumeSection = () => {
-  const { data: volume = 15, isLoading } = useDeviceVolume();
+  const { data: volume, isLoading } = useDeviceVolume();
   const mutation = useUpdateVolume();
 
-  const [localVolume, setLocalVolume] = useState(volume);
+  // Always start with a defined number
+  const [localVolume, setLocalVolume] = useState(15);
+
+  // Sync API volume once it is available
+  useEffect(() => {
+    if (typeof volume === "number") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLocalVolume(volume);
+    }
+  }, [volume]);
 
   const handleChangeComplete = (value) => {
     mutation.mutate(value);
@@ -25,7 +33,7 @@ const VolumeSection = () => {
       <div className="absolute inset-0 bg-linear-to-r from-blue-600/20 to-blue-600/20 blur-3xl -z-10" />
 
       <div className="backdrop-blur-2xl ltr bg-white/10 border border-white/20 rounded-3xl shadow-2xl sm:p-8 p-4">
-        {/* آیکون متحرک صدا */}
+        {/* Volume Icon */}
         <motion.div
           animate={{ rotate: [0, 10, -10, 0] }}
           transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
@@ -40,6 +48,7 @@ const VolumeSection = () => {
           صدای دستگاه
         </h2>
 
+        {/* Slider */}
         <div className="relative mb-6 px-8">
           <motion.div
             animate={{
@@ -61,10 +70,8 @@ const VolumeSection = () => {
             type="range"
             min="0"
             max="30"
-            value={isLoading ? 15 : localVolume}
+            value={localVolume}
             onChange={(e) => setLocalVolume(Number(e.target.value))}
-            onMouseUp={(e) => setLocalVolume(Number(e.target.value))}
-            onTouchEnd={(e) => setLocalVolume(Number(e.target.value))}
             className="w-full h-10 bg-white/10 rounded-full appearance-none cursor-pointer slider-thumb-glow"
             style={{
               background: `linear-gradient(to right, 
@@ -76,6 +83,7 @@ const VolumeSection = () => {
           />
         </div>
 
+        {/* Loading text */}
         {mutation.isPending && (
           <motion.p
             animate={{ opacity: [0.5, 1, 0.5] }}
@@ -85,19 +93,22 @@ const VolumeSection = () => {
             در حال تغییر صدا...
           </motion.p>
         )}
+
+        {/* Submit button */}
         <div className="flex w-full mb-6 justify-center items-center">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
-            type="submit"
-            onClick={(e) => handleChangeComplete(Number(e.target.value))}
+            type="button"
+            onClick={() => handleChangeComplete(localVolume)}
             disabled={mutation.isPending}
-            className="px-6 sm:text-lg text-md cursor-pointer py-4 bg-linear-to-r from-blue-600 to-blue-600 text-white font-bold rounded-2xl shadow-2xl flex items-center justify-center gap-2 disabled:opacity-70"
+            className="px-6 sm:text-lg text-md cursor-pointer py-4 bg-linear-to-r from-blue-600 to-blue-600 text-white font-semibold rounded-2xl shadow-2xl flex items-center justify-center gap-2 disabled:opacity-70"
           >
             {mutation.isPending ? "..." : "تغییر میزان صدا"}
           </motion.button>
         </div>
 
+        {/* Current volume */}
         <motion.div className="p-5 bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl text-center">
           <p className="text-white/70 sm:text-sm text-xs mb-1">
             میزان صدای فعلی

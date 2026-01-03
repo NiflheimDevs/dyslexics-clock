@@ -120,6 +120,11 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
+.Vazirmatn {
+  font-family: "Vazirmatn", sans-serif;
+}
+
+
 .fade-in {
   animation: fadeIn 0.3s ease-in;
 }

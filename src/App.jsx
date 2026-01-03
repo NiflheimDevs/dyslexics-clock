@@ -36,10 +36,10 @@ function App() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleLogout}
-              className="group cursor-pointer flex items-center sm:gap-3 gap-1.5 px-6 py-4 bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl text-white/80 hover:text-white transition-all duration-300 shadow-xl"
+              className="group cursor-pointer flex items-center justify-center sm:gap-3 gap-1.5 px-6 py-4 bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl text-white/80 hover:text-white transition-all duration-300 shadow-xl"
             >
-              <MdLogout className="transition-transform sm:text-[20px] text-[18px] duration-500 group-hover:rotate-180" />
-              <span className="font-medium sm:text-md text-sm">خروج</span>
+              <MdLogout className="transition-transform sm:text-[20px] text-[18px] duration-500" />
+              <span className="font-medium sm:text-md text-sm Vazirmatn">خروج</span>
             </motion.button>
             <motion.h1
               initial={{ opacity: 0, y: -30 }}
