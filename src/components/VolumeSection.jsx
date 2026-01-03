@@ -3,20 +3,14 @@ import { MdVolumeUp } from "react-icons/md";
 import { motion } from "framer-motion";
 import { useDeviceVolume, useUpdateVolume } from "../hooks/useAlarms";
 import { useState } from "react";
+import { MdAdd } from "react-icons/md";
 
 const VolumeSection = () => {
-const { data: volume = 15, isLoading } = useDeviceVolume();
-const mutation = useUpdateVolume();
+  const { data: volume = 15, isLoading } = useDeviceVolume();
+  const mutation = useUpdateVolume();
 
-const [localVolume, setLocalVolume] = useState(15);
+  const [localVolume, setLocalVolume] = useState(volume);
 
-useEffect(() => {
-  if (!isLoading) {
-    setLocalVolume(volume);
-  }
-}, [volume, isLoading]);
-
-  // وقتی کاربر اسلایدر رو رها کرد، به سرور بفرست
   const handleChangeComplete = (value) => {
     mutation.mutate(value);
   };
@@ -46,7 +40,7 @@ useEffect(() => {
           صدای دستگاه
         </h2>
 
-        <div className="relative mb-10 px-8">
+        <div className="relative mb-6 px-8">
           <motion.div
             animate={{
               background: [
@@ -69,8 +63,8 @@ useEffect(() => {
             max="30"
             value={isLoading ? 15 : localVolume}
             onChange={(e) => setLocalVolume(Number(e.target.value))}
-            onMouseUp={(e) => handleChangeComplete(Number(e.target.value))}
-            onTouchEnd={(e) => handleChangeComplete(Number(e.target.value))}
+            onMouseUp={(e) => setLocalVolume(Number(e.target.value))}
+            onTouchEnd={(e) => setLocalVolume(Number(e.target.value))}
             className="w-full h-10 bg-white/10 rounded-full appearance-none cursor-pointer slider-thumb-glow"
             style={{
               background: `linear-gradient(to right, 
@@ -91,6 +85,18 @@ useEffect(() => {
             در حال تغییر صدا...
           </motion.p>
         )}
+        <div className="flex w-full mb-6 justify-center items-center">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            type="submit"
+            onClick={(e) => handleChangeComplete(Number(e.target.value))}
+            disabled={mutation.isPending}
+            className="px-6 sm:text-lg text-md cursor-pointer py-4 bg-linear-to-r from-blue-600 to-blue-600 text-white font-bold rounded-2xl shadow-2xl flex items-center justify-center gap-2 disabled:opacity-70"
+          >
+            {mutation.isPending ? "..." : "تغییر میزان صدا"}
+          </motion.button>
+        </div>
 
         <motion.div className="p-5 bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl text-center">
           <p className="text-white/70 sm:text-sm text-xs mb-1">

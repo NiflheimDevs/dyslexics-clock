@@ -77,7 +77,7 @@ export const useDeviceVolume = () => {
   return useQuery({
     queryKey: ['deviceVolume'],
     queryFn: getDeviceVolume,
-    select: (data) => data.data,
+    select: (data) => data.data.volume,
   });
 };
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { MdAccessAlarm, MdPalette, MdVolumeUp, MdLogout } from "react-icons/md";
 import AlarmSection from "./components/AlarmSection";
 import ColorSection from "./components/ColorSection";
-import VolumeSection from "./components/VolumeSection"; 
+import VolumeSection from "./components/VolumeSection";
 import Login from "./components/LoginSection";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
@@ -32,14 +32,6 @@ function App() {
       <div className="min-h-screen">
         <div className="sm:px-6 px-4">
           <header className="flex items-center justify-between mb-8 pt-4">
-            <motion.h1
-              initial={{ opacity: 0, y: -30 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-blue-400 via-cyan-400 to-blue-400"
-            >
-              Dyslexics Clock
-            </motion.h1>
-
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
@@ -49,6 +41,13 @@ function App() {
               <MdLogout className="transition-transform sm:text-[20px] text-[18px] duration-500 group-hover:rotate-180" />
               <span className="font-medium sm:text-md text-sm">خروج</span>
             </motion.button>
+            <motion.h1
+              initial={{ opacity: 0, y: -30 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-blue-400 via-cyan-400 to-blue-400"
+            >
+              Dyslexics Clock
+            </motion.h1>
           </header>
 
           {/* تب‌ها */}
