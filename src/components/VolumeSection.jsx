@@ -5,11 +5,16 @@ import { useDeviceVolume, useUpdateVolume } from "../hooks/useAlarms";
 import { useState } from "react";
 
 const VolumeSection = () => {
-  const { data: volume = 15, isLoading } = useDeviceVolume();
-  const mutation = useUpdateVolume();
+const { data: volume = 15, isLoading } = useDeviceVolume();
+const mutation = useUpdateVolume();
 
-  // برای اسلایدر نرم‌تر و کنترل‌شده
-  const [localVolume, setLocalVolume] = useState(volume);
+const [localVolume, setLocalVolume] = useState(15);
+
+useEffect(() => {
+  if (!isLoading) {
+    setLocalVolume(volume);
+  }
+}, [volume, isLoading]);
 
   // وقتی کاربر اسلایدر رو رها کرد، به سرور بفرست
   const handleChangeComplete = (value) => {
