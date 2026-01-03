@@ -1,29 +1,43 @@
 #include "main.h"
 #include "Arduino.h"
-#include "led.h"
 #include "ArduinoJson.h"
 #include "ArduinoJson/Deserialization/DeserializationError.hpp"
 #include "ArduinoJson/Document/JsonDocument.hpp"
 #include "HardwareSerial.h"
 #include "WiFi.h"
 #include "WiFiManager.h"
+#include "freertos/projdefs.h"
+#include "led.h"
 #include <ctime>
 
 WiFiManager wifiManager;
-String sub_topics[9] = {"devices/" + String(DEVICEID) + "/alarms/create",
-                        "devices/" + String(DEVICEID) + "/alarms/update",
-                        "devices/" + String(DEVICEID) + "/alarms/delete",
-                        "devices/" + String(DEVICEID) + "/alarms",
-                        "devices/" + String(DEVICEID) + "/color",
-                        "devices/" + String(DEVICEID) + "/volume",
-                        "devices/" + String(DEVICEID) + "/ring",
-                        "devices/" + String(DEVICEID) + "/silence",
-                        "devices/time"};
 
-String pub_topics[4] = {"devices/" + String(DEVICEID) + "/status",
+struct MqttMsg {
+  String topic;
+  String payload;
+};
+
+QueueHandle_t mqttQueue;
+
+bool first_time_online = false;
+bool wifiConnected = false;
+const uint8_t sub_topics_count = 9;
+String sub_topics[sub_topics_count] = {"devices/" + DEVICEID + "/alarms/create",
+                                       "devices/" + DEVICEID + "/alarms/update",
+                                       "devices/" + DEVICEID + "/alarms/delete",
+                                       "devices/" + DEVICEID + "/alarms",
+                                       "devices/" + DEVICEID + "/color",
+                                       "devices/" + DEVICEID + "/volume",
+                                       "devices/" + DEVICEID + "/ring",
+                                       "devices/" + DEVICEID + "/silence",
+                                       "devices/time"};
+
+String pub_topics[6] = {"devices/" + DEVICEID + "/status",
                         "devices/alarms",
-                        "devices/" + String(DEVICEID) + "/ringing",
-                        "devices/" + String(DEVICEID) + "/log"};
+                        "devices/volume",
+                        "devices/color",
+                        "devices/" + DEVICEID + "/ringing",
+                        "devices/" + DEVICEID + "/log"};
 
 String getTopic(ActionPublish action) {
   switch (action) {
@@ -32,9 +46,13 @@ String getTopic(ActionPublish action) {
   case ACTION_GET_ALL_ALARMS:
     return pub_topics[1];
   case ACTION_RINGING:
-    return pub_topics[2];
+    return pub_topics[4];
   case ACTION_LOG:
+    return pub_topics[5];
+  case ACTION_GET_COLOR:
     return pub_topics[3];
+  case ACTION_GET_VOLUME:
+    return pub_topics[2];
   default:
     return "";
   }
@@ -79,6 +97,7 @@ void setup() {
   setupLED();
   setupDfPlayer();
   setupTouch();
+  setupMQTT();
 }
 
 void setupRTC() {
@@ -95,9 +114,14 @@ void setupRTC() {
   }
 }
 
-void setupMqtt() {
+void setupMQTT() {
+
+  mqttQueue = xQueueCreate(10,             // queue length (number of messages)
+                           sizeof(MqttMsg) // size of each message
+  );
   client.setServer(mqtt_server, 11883);
   client.setCallback(mbCallback);
+  xTaskCreate(mqttTask, "mqtttask", 4096, NULL, 3, NULL);
 }
 
 void mbCallback(char *topic, byte *message, unsigned int length) {
@@ -256,14 +280,15 @@ void add_alarms_batch(String messageString) {
 }
 void set_color(String messageString) {
   if (messageString.length() == 7 && messageString[0] == '#') {
-    unsigned long hexValue = strtoul(messageString.substring(1).c_str(), NULL, 16);
-    
+    unsigned long hexValue =
+        strtoul(messageString.substring(1).c_str(), NULL, 16);
+
     uint8_t r = (hexValue >> 16) & 0xFF;
     uint8_t g = (hexValue >> 8) & 0xFF;
     uint8_t b = hexValue & 0xFF;
-    
+
     gClockColor = CRGB(r, g, b);
-    
+
     Serial.print("Color set to: ");
     Serial.print(messageString);
     Serial.print(" (R:");
@@ -356,6 +381,35 @@ void wifiProcessor(void *args) {
   }
 }
 
+void mqttTask(void *pv) {
+  MqttMsg msg;
+  for (;;) {
+    if (wifiConnected) {
+      if (client.connected()) { // already connected
+        if (!first_time_online) {
+          first_time_online = true;
+          client.publish(getTopic(ACTION_GET_COLOR).c_str(), DEVICEID.c_str());
+          client.publish(getTopic(ACTION_GET_VOLUME).c_str(), DEVICEID.c_str());
+          client.publish(getTopic(ACTION_GET_ALL_ALARMS).c_str(),
+                         DEVICEID.c_str());
+        }
+        while (xQueueReceive(mqttQueue, &msg, 0)) {
+          client.publish(msg.topic.c_str(), msg.payload.c_str());
+        }
+        client.loop();
+      } else { // connect and sub
+        if (client.connect(DEVICEID.c_str())) {
+          for (uint8_t i = 0; i < sub_topics_count; i++) {
+            client.subscribe(sub_topics[i].c_str(), 1);
+          }
+          client.loop();
+        }
+      }
+      vTaskDelay(pdMS_TO_TICKS(10));
+    }
+  }
+}
+
 void setupWifi() {
   WiFi.onEvent(WiFiEvent);
 
@@ -372,6 +426,8 @@ void setupWifi() {
   xTaskCreate(wifiProcessor, "wifiProcessor", 4096, NULL, 2, NULL);
 }
 
+void ConnectMqtt() {}
+
 void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
   Serial.print("WiFi Event:");
   switch (event) {
@@ -383,10 +439,15 @@ void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
     break;
   case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
     Serial.println("WiFi, disconnected!");
+    wifiConnected = false;
+    client.disconnect();
+    Serial.println("disconnceted from mqtt");
     break;
   case ARDUINO_EVENT_WIFI_STA_GOT_IP:
     Serial.print("WiFi, got IP");
     Serial.println(WiFi.localIP());
+    wifiConnected = true;
+
     break;
   default:
     break;
@@ -395,6 +456,7 @@ void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
 
 void loop() {
   DateTime now = rtc.now();
+
   showTime(now.minute(), now.hour());
   if (!alarmHeap.empty()) {
     Alarm *next = alarmHeap.get_top();
@@ -413,5 +475,5 @@ void loop() {
       AlarmStart();
     }
   }
-  delay(60000);
+  vTaskDelay(pdMS_TO_TICKS(60000));
 }

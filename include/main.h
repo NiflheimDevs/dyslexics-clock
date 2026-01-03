@@ -6,15 +6,16 @@
 #include <WiFiManager.h>
 #include <alarm_heap.h>
 
-
-const uint8_t DEVICEID = 1;
+const String DEVICEID = "1";
 
 extern String sub_topics[9];
-extern String pub_topics[4];
+extern String pub_topics[6];
 
 enum ActionPublish {
   ACTION_STATUS,
   ACTION_GET_ALL_ALARMS,
+  ACTION_GET_COLOR,
+  ACTION_GET_VOLUME,
   ACTION_RINGING,
   ACTION_LOG
 };
@@ -37,7 +38,7 @@ extern AlarmHeap alarmHeap;
 String getTopic(ActionPublish action);
 void setup();
 void setupRTC();
-void setupMqtt();
+void setupMQTT();
 void mbCallback(char *topic, byte *message, unsigned int length);
 void setupDfPlayer();
 void setupLED();
@@ -60,3 +61,5 @@ void set_color(String messageString);
 void set_volume(String messageString);
 void ring(String messageString);
 void sync_time(String messageString);
+
+void mqttTask(void *pv);
