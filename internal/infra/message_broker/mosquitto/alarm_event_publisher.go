@@ -1,6 +1,7 @@
 package mosquitto
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -22,18 +23,20 @@ func NewAlarmEventPublisher(client mqtt.Client) *AlarmEventPublisher {
 
 func (p *AlarmEventPublisher) PublishCreate(deviceID string, alarm *model.Alarm) error {
 	topic := fmt.Sprintf("devices/%s/alarms/create", deviceID)
-	return p.client.Publish(topic, 1, false, alarm).Error()
+	payload, _ := json.Marshal(alarm)
+	return p.client.Publish(topic, 1, false, payload).Error()
 }
 
 func (p *AlarmEventPublisher) PublishUpdate(deviceID string, alarm *model.Alarm) error {
 	topic := fmt.Sprintf("devices/%s/alarms/update", deviceID)
-	return p.client.Publish(topic, 1, false, alarm).Error()
+	payload, _ := json.Marshal(alarm)
+	return p.client.Publish(topic, 1, false, payload).Error()
 }
 
 func (p *AlarmEventPublisher) PublishDelete(deviceID string, alarmID string) error {
 	topic := fmt.Sprintf("devices/%s/alarms/delete", deviceID)
 
-	payload := struct {
+	payloadStruct := struct {
 		ID        string    `json:"id"`
 		DeletedAt time.Time `json:"deleted_at"`
 	}{
@@ -41,5 +44,6 @@ func (p *AlarmEventPublisher) PublishDelete(deviceID string, alarmID string) err
 		DeletedAt: time.Now().UTC(),
 	}
 
+	payload, _ := json.Marshal(payloadStruct)
 	return p.client.Publish(topic, 1, false, payload).Error()
 }
