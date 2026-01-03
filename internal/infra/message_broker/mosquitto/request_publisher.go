@@ -57,7 +57,7 @@ func (p *RequestPublisher) PublishColor(deviceID string, color string) error {
 func (p *RequestPublisher) PublishVolume(deviceID string, volume uint) error {
 	topic := fmt.Sprintf("devices/%s/volume", deviceID)
 
-	token := p.client.Publish(topic, p.qos, false, fmt.Sprint(volume))
+	token := p.client.Publish(topic, p.qos, false, []byte(fmt.Sprint(volume)))
 	token.Wait() // Wait for the publication to complete
 	if token.Error() != nil {
 		log.Printf("Error publishing volume for device %s to topic %s: %v", deviceID, topic, token.Error())
