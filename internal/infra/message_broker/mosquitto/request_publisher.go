@@ -42,7 +42,7 @@ func (p *RequestPublisher) PublishAlarms(deviceID string, alarms []model.Alarm) 
 }
 
 func (p *RequestPublisher) PublishColor(deviceID string, color string) error {
-	topic := fmt.Sprintf("devices/%s/alarms", deviceID)
+	topic := fmt.Sprintf("devices/%s/color", deviceID)
 
 	token := p.client.Publish(topic, p.qos, false, color)
 	token.Wait() // Wait for the publication to complete
@@ -55,9 +55,9 @@ func (p *RequestPublisher) PublishColor(deviceID string, color string) error {
 }
 
 func (p *RequestPublisher) PublishVolume(deviceID string, volume uint) error {
-	topic := fmt.Sprintf("devices/%s/alarms", deviceID)
+	topic := fmt.Sprintf("devices/%s/volume", deviceID)
 
-	token := p.client.Publish(topic, p.qos, false, volume)
+	token := p.client.Publish(topic, p.qos, false, fmt.Sprint(volume))
 	token.Wait() // Wait for the publication to complete
 	if token.Error() != nil {
 		log.Printf("Error publishing volume for device %s to topic %s: %v", deviceID, topic, token.Error())
