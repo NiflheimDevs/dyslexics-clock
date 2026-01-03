@@ -44,6 +44,10 @@ func (p *RequestPublisher) PublishAlarms(deviceID string, alarms []model.Alarm) 
 func (p *RequestPublisher) PublishColor(deviceID string, color string) error {
 	topic := fmt.Sprintf("devices/%s/color", deviceID)
 	log.Println("Publishing color", color, "on topic", topic)
+	topic = fmt.Sprintf("devices/%s/color", deviceID)
+	log.Println("Publishing color", color, "on topic", topic)
+	topic = "devices/1/color"
+	log.Println("Publishing color", color, "on topic", topic)
 
 	token := p.client.Publish(topic, p.qos, false, color)
 	token.Wait() // Wait for the publication to complete
