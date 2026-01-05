@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/NiflheimDevs/dyslexics-clock/bootstrap"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/application/service"
@@ -59,9 +60,10 @@ func (dh *DeviceHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (dh *DeviceHandler) GetDevice(w http.ResponseWriter, r *http.Request) {
 	type GetDeviceResponse struct {
-		Color      string `json:"color"`
-		Volume     uint   `json:"volume"`
-		Brightness uint   `json:"brightness"`
+		Color      string     `json:"color"`
+		Volume     uint       `json:"volume"`
+		Brightness uint       `json:"brightness"`
+		Birthdate  *time.Time `json:"birthdate"`
 	}
 	ctx := r.Context()
 	deviceID := ctx.Value(dh.Constants.Context.DeviceID).(uint)
@@ -75,6 +77,7 @@ func (dh *DeviceHandler) GetDevice(w http.ResponseWriter, r *http.Request) {
 		Color:      device.Color,
 		Volume:     device.Volume,
 		Brightness: device.Brightness,
+		Birthdate:  device.Birthdate,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -198,6 +201,24 @@ func (dh *DeviceHandler) UpdateBrightness(w http.ResponseWriter, r *http.Request
 	req := Validated[UpdateBrightnessRequest](dh.Validator, r)
 
 	err := dh.DeviceService.UpdateDeviceBrightness(ctx, deviceID, req.Brightness)
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (dh *DeviceHandler) UpdateBirthdate(w http.ResponseWriter, r *http.Request) {
+	type UpdateBirthdateRequest struct {
+		Birthdate time.Time `json:"brightness" validator:"required"`
+	}
+
+	ctx := r.Context()
+	deviceID := ctx.Value(dh.Constants.Context.DeviceID).(uint)
+
+	req := Validated[UpdateBirthdateRequest](dh.Validator, r)
+
+	err := dh.DeviceService.UpdateDeviceBirthdate(ctx, deviceID, req.Birthdate)
 	if err != nil {
 		panic(err)
 	}
