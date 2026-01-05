@@ -27,7 +27,7 @@ func NewPublisherService(alarmEventPublisher messagebroker.AlarmEventPublisher, 
 	if err != nil {
 		panic(err)
 	}
-	sched.NewJob(gocron.DurationJob(time.Minute*1), gocron.NewTask(p.PublishTime()))
+	sched.NewJob(gocron.DurationJob(time.Minute*1), gocron.NewTask(p.PublishTime))
 	sched.Start()
 	return p
 }
