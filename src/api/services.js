@@ -4,6 +4,16 @@ export const getAlarms = () => api.get("/alarm");
 
 export const createAlarm = (data) => api.post("/alarm", data);
 
+export const BezanBekob = (data) => api.post("/device/bezanbekob", data);
+
+export const UpdateBrightness = (data) => api.post("/device/Brightness", data);
+
+export const GetBrightness = (data) => api.get("/device/Brightness", data);
+
+export const StopAlarm = (data) => api.post("/device/stop", data);
+
+export const SnoozeWAlarm = (data) => api.post("/device/snooze", data);
+
 export const updateAlarm = (id, data) => api.patch(`/alarm/${id}`, data);
 
 export const deleteAlarm = (id) => api.delete(`/alarm/${id}`);

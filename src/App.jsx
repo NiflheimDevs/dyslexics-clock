@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { MdAccessAlarm, MdPalette, MdVolumeUp, MdLogout } from "react-icons/md";
+import { MdAccessAlarm, MdPalette, MdVolumeUp, MdLogout, MdSettings } from "react-icons/md";
 import AlarmSection from "./components/AlarmSection";
 import ColorSection from "./components/ColorSection";
 import VolumeSection from "./components/VolumeSection";
+import BezanBekob from "./components/BezanBekob";
 import Login from "./components/LoginSection";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
@@ -16,6 +17,7 @@ function App() {
     window.addEventListener("storage", checkToken);
     return () => window.removeEventListener("storage", checkToken);
   }, []);
+
 
   const handleLogout = () => {
     localStorage.clear();
@@ -41,6 +43,7 @@ function App() {
               <MdLogout className="transition-transform sm:text-[20px] text-[18px] duration-500" />
               <span className="font-medium sm:text-md text-sm Vazirmatn">خروج</span>
             </motion.button>
+
             <motion.h1
               initial={{ opacity: 0, y: -30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -55,6 +58,12 @@ function App() {
             <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-3 shadow-2xl">
               <div className="flex gap-4 flex-wrap justify-center">
                 {[
+                  {
+                    id: "BezanBekob",
+                    label: "مدیریت",
+                    icon: MdSettings,
+                    gradient: "bg-blue-600",
+                  },
                   {
                     id: "alarm",
                     label: "آلارم",
@@ -113,10 +122,12 @@ function App() {
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="flex justify-center"
           >
+            {activeTab === "BezanBekob" && <BezanBekob />}
             {activeTab === "alarm" && <AlarmSection />}
             {activeTab === "color" && <ColorSection />}
             {activeTab === "volume" && <VolumeSection />}
           </motion.main>
+
         </div>
       </div>
     </>
