@@ -69,7 +69,7 @@ func (p *AlarmEventPublisher) PublishDelete(deviceID string, alarmID string) err
 
 func (p *AlarmEventPublisher) PublishRing(deviceID string) error {
 	topic := fmt.Sprintf("devices/%s/ring", deviceID)
-	token := p.client.Publish(topic, 1, false, nil)
+	token := p.client.Publish(topic, 1, false, []byte("f"))
 	token.Wait()
 	err := token.Error()
 	if err != nil {
@@ -80,7 +80,7 @@ func (p *AlarmEventPublisher) PublishRing(deviceID string) error {
 
 func (p *AlarmEventPublisher) PublishSnooze(deviceID string) error {
 	topic := fmt.Sprintf("devices/%s/snooze", deviceID)
-	token := p.client.Publish(topic, 1, false, nil)
+	token := p.client.Publish(topic, 1, false, []byte("f"))
 	token.Wait()
 	err := token.Error()
 	if err != nil {
@@ -91,7 +91,7 @@ func (p *AlarmEventPublisher) PublishSnooze(deviceID string) error {
 
 func (p *AlarmEventPublisher) PublishSilent(deviceID string) error {
 	topic := fmt.Sprintf("devices/%s/silent", deviceID)
-	token := p.client.Publish(topic, 1, false, nil)
+	token := p.client.Publish(topic, 1, false, []byte("f"))
 	token.Wait()
 	err := token.Error()
 	if err != nil {
