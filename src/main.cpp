@@ -13,11 +13,13 @@
 #include "freertos/projdefs.h"
 #include "led.h"
 #include <cstdint>
+#include <cstdlib>
 #include <ctime>
 
 #define DEBUGMODE true
 
 Alarm *prev = NULL;
+bool is_ringing = false;
 WiFiManager wifiManager;
 volatile bool start_portal = false;
 
@@ -81,20 +83,12 @@ long lastMsg = 0;
 char msg[50];
 int value = 0;
 
-Alarm *create_alarm(uint32_t id, uint32_t device_id, uint32_t timestamp,
-                    bool is_repeat = false, Weekday *repeating_days = nullptr,
-                    uint8_t repeating_days_count = 0) {
+Alarm *create_snooze_alarm() {
   Alarm *alarm = new Alarm();
-  alarm->id = id;
-  alarm->timestamp = timestamp;
-  alarm->is_repeat = is_repeat;
-
-  if (is_repeat && repeating_days != nullptr) {
-    for (uint8_t i = 0; i < repeating_days_count && i < 7; i++) {
-      alarm->repeating_days[i] = repeating_days[i];
-    }
-  }
-
+  alarm->id = rand() % 10000;
+  DateTime now = rtc.now();
+  alarm->timestamp = DateTime(now.year(), now.month(), now.day(), now.hour(),
+                              now.minute(), now.second());
   return alarm;
 }
 
@@ -175,11 +169,13 @@ void mbCallback(char *topic, byte *message, unsigned int length) {
     ring(messageString);
   } else if (stringTopic == sub_topics[7]) {
     Serial.println("[mbCallback] Action: silent");
+    is_ringing = false;
     player.stop();
     Serial.println("Silenced");
   } else if (stringTopic == sub_topics[8]) {
     Serial.println("[mbCallback] Action: snooze");
     Snooze();
+    is_ringing = false;
   } else if (stringTopic == sub_topics[9]) {
     Serial.println("[mbCallback] Action: sync_time");
     sync_time(messageString);
@@ -390,7 +386,7 @@ void sync_time(String messageString) {
   unsigned long unixTime = messageString.toInt();
 
   DateTime time(unixTime);
-    time = time + TimeSpan(0, 3, 30, 0);
+  time = time + TimeSpan(0, 3, 30, 0);
 
   rtc.adjust(time);
 
@@ -413,7 +409,7 @@ void setupDfPlayer() {
   FPSerial.begin(9600, SERIAL_8N1, 16, 17);
   // while (!player.begin(FPSerial)) {
   if (player.begin(FPSerial)) {
-        Serial.println("DFPlayer Mini online!");
+    Serial.println("DFPlayer Mini online!");
     delay(100);
   }
   Serial.println("DFPlayer Mini not online!!!!!!!!");
@@ -439,11 +435,12 @@ void ARDUINO_ISR_ATTR Snooze() {
   player.stop();
   Serial.println("Snooze");
 
-  if (prev != NULL) {
-    Alarm *alarm = copy_alarm_for_snooze(prev);
+  if (is_ringing) {
+    Alarm *alarm = create_snooze_alarm();
     alarmHeap.insert(alarm);
     if (DEBUGMODE)
       Serial.println("snoozed alarm added");
+    is_ringing = false;
   }
 }
 
@@ -459,6 +456,7 @@ void AlarmStart() {
 
   player.volume(volume);
   player.play(2);
+  is_ringing = true;
 }
 
 void wifiProcessor(void *args) {
