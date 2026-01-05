@@ -68,7 +68,7 @@ func (p *RequestPublisher) PublishVolume(deviceID string, volume uint) error {
 }
 	
 func (p *RequestPublisher) PublishBrightness(deviceID string, brightness uint) error {
-	topic := fmt.Sprintf("devices/%s/volume", deviceID)
+	topic := fmt.Sprintf("devices/%s/brightness", deviceID)
 
 	token := p.client.Publish(topic, p.qos, false, fmt.Append(nil, brightness))
 	token.Wait() // Wait for the publication to complete
