@@ -7,6 +7,7 @@ import {
   getDeviceColor,
   updateDeviceColor,
   getDeviceVolume,
+  updateBirthDate,
   updateDeviceVolume,
   BezanBekob,
   GetBrightness,
@@ -82,6 +83,26 @@ export const useDeviceVolume = () => {
     queryKey: ["deviceVolume"],
     queryFn: getDeviceVolume,
     select: (data) => data.data.volume,
+  });
+};
+
+export const useBirthDate = () => {
+  return useQuery({
+    queryKey: ["birthDate"],
+    queryFn: getDeviceVolume,
+    select: (data) => data.data.birthdate,
+  });
+};
+
+
+export const useUpdateBirthDate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ data }) => updateBirthDate(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["birthDate"]);
+      toast.success("تاریخ تولد با موفقیت بروز شد");
+    },
   });
 };
 

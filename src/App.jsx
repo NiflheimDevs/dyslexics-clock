@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
-  const [activeTab, setActiveTab] = useState("alarm");
+  const [activeTab, setActiveTab] = useState("BezanBekob");
 
   useEffect(() => {
     const checkToken = () => setIsLoggedIn(!!localStorage.getItem("token"));

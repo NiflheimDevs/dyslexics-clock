@@ -22,6 +22,8 @@ export const getDeviceColor = () => api.get("/device/color");
 
 export const getDeviceVolume = () => api.get("/device");
 
+export const updateBirthDate = (date) => api.patch("/device/birthdate", date);
+
 export const updateDeviceColor = (color) =>
   api.patch("/device/color", { color });
 

@@ -1,32 +1,33 @@
 import { useState, useEffect } from "react";
 import { Clock, BellOff, Sun } from "lucide-react";
 import { motion } from "framer-motion";
-import { 
+import {
   useDeviceBrightness,
   useUpdateBrightness,
   useSnoozeAlarm,
   useStopAlarm,
-  useBezanBekob
+  useBezanBekob,
 } from "../hooks/useAlarms";
+import BirthDateCard from "./BirthDateCard";
 
 const AlarmControls = () => {
   const [brightness, setBrightness] = useState(128);
-  
+
   // Query to get current brightness
   const { data: currentBrightness } = useDeviceBrightness();
-  
+
   // Mutations
   const updateBrightnessMutation = useUpdateBrightness();
   const snoozeAlarmMutation = useSnoozeAlarm();
   const stopAlarmMutation = useStopAlarm();
-  const bezanBekoبMutation = useBezanBekob();
+  const bezanBekobMutation = useBezanBekob();
 
   // Update local brightness when data is fetched
   useEffect(() => {
     if (currentBrightness !== undefined) {
-      setBrightness(currentBrightness); 
+      setBrightness(currentBrightness);
     }
-  }, [currentBrightness]); 
+  }, [currentBrightness]);
 
   const handleStop = () => {
     stopAlarmMutation.mutate();
@@ -39,7 +40,7 @@ const AlarmControls = () => {
   const handleBezan = async () => {
     try {
       // console.log("بزن بکوب!");
-      bezanBekoبMutation.mutate();
+      bezanBekobMutation.mutate();
     } catch (error) {
       console.error("Error:", error);
     }
@@ -64,13 +65,13 @@ const AlarmControls = () => {
     >
       <div className="absolute inset-0 bg-linear-to-r from-blue-600/20 to-blue-600/20 blur-3xl -z-10" />
 
-      <div className="backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl shadow-2xl p-8">
+      <div className="backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl shadow-2xl sm:p-8 py-8 px-4">
         <motion.div
           animate={{ rotate: [0, 10, -10, 0] }}
           transition={{ repeat: Infinity, duration: 6 }}
           className="flex justify-center mb-6"
         >
-          <div className="p-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl shadow-2xl">
+          <div className="p-5 bg-linear-to-br from-blue-500 to-blue-600 rounded-3xl shadow-2xl">
             <Clock size={38} className="text-white" />
           </div>
         </motion.div>
@@ -99,33 +100,39 @@ const AlarmControls = () => {
               className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
               dir="rtl"
               style={{
-                background: `linear-gradient(to left, rgb(59, 130, 246) 0%, rgb(59, 130, 246) ${(brightness / 255) * 100}%, rgba(255,255,255,0.1) ${(brightness / 255) * 100}%, rgba(255,255,255,0.1) 100%)`
+                background: `linear-gradient(to left, rgb(59, 130, 246) 0%, rgb(59, 130, 246) ${
+                  (brightness / 255) * 100
+                }%, rgba(255,255,255,0.1) ${
+                  (brightness / 255) * 100
+                }%, rgba(255,255,255,0.1) 100%)`,
               }}
             />
-            <div className="flex w-full mt-4 justify-center items-center">
+            <div className="flex w-full mt-4 px-2 justify-center items-center">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={handleSubmit}
                 disabled={updateBrightnessMutation.isPending}
-                className="px-6 sm:text-lg text-md cursor-pointer py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-2xl shadow-2xl flex items-center justify-center gap-2 disabled:opacity-70 hover:from-blue-700 hover:to-blue-800 transition-all"
+                className="w-full mt-6 py-4 bg-linear-to-r cursor-pointer from-blue-600 to-blue-600 text-white font-semibold rounded-2xl shadow-xl disabled:opacity-70 transition-all"
               >
                 {updateBrightnessMutation.isPending ? "..." : "تغییر روشنایی"}
               </motion.button>
             </div>
           </div>
 
+          <BirthDateCard />
+
           {/* Bezan Bekob Button */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleBezan}
-            disabled={bezanBekoبMutation.isPending}
+            disabled={bezanBekobMutation.isPending}
             className="w-full group cursor-pointer flex items-center justify-center gap-3 px-6 py-5 bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl text-white/80 hover:text-white transition-all duration-300 shadow-xl hover:shadow-2xl disabled:opacity-70"
           >
             <span className="font-medium text-lg">
-              {bezanBekoبMutation.isPending ? "..." : "🎉 بزن بکوب 💣"}
+              {bezanBekobMutation.isPending ? "..." : "🎉 بزن بکوب 💣"}
             </span>
           </motion.button>
 
@@ -136,11 +143,11 @@ const AlarmControls = () => {
               whileTap={{ scale: 0.95 }}
               onClick={handleSnooze}
               disabled={snoozeAlarmMutation.isPending}
-              className="flex flex-col items-center justify-center gap-2 p-5 bg-blue-500/20 border border-blue-400/30 rounded-2xl text-blue-400 hover:bg-blue-500/30 transition-all disabled:opacity-70"
+              className="flex flex-col cursor-pointer items-center justify-center gap-2 p-5 bg-blue-500/30 border border-blue-400/30 rounded-2xl text-blue-200 hover:bg-blue-500/40 transition-all disabled:opacity-70"
             >
               <Clock className="w-6 h-6" />
               <span className="text-sm font-medium">
-                {snoozeAlarmMutation.isPending ? "..." : "اسنوز 5 دقیقه"}
+                {snoozeAlarmMutation.isPending ? "..." : "اسنوز"}
               </span>
             </motion.button>
 
@@ -149,7 +156,7 @@ const AlarmControls = () => {
               whileTap={{ scale: 0.95 }}
               onClick={handleStop}
               disabled={stopAlarmMutation.isPending}
-              className="flex flex-col items-center justify-center gap-2 p-5 bg-red-500/20 border border-red-400/30 rounded-2xl text-red-400 hover:bg-red-500/30 transition-all disabled:opacity-70"
+              className="flex flex-col cursor-pointer items-center justify-center gap-2 p-5 bg-red-500/30 border border-red-400/30 rounded-2xl text-red-200 hover:bg-red-500/40 transition-all disabled:opacity-70"
             >
               <BellOff className="w-6 h-6" />
               <span className="text-sm font-medium">
