@@ -5,6 +5,8 @@
 #define NUM_LEDS 121
 #define BRIGHTNESS 185
 
+// extern volatile uint8_t brightness = 185;
+
 extern CRGB leds[NUM_LEDS];
 
 extern CRGB gClockColor;

@@ -3,6 +3,8 @@
 CRGB leds[NUM_LEDS];
 CRGB gClockColor = CRGB::Green;
 
+// volatile uint8_t brightness = 185;
+
 const uint8_t PROGMEM IT[] = {0, 1};
 const uint8_t PROGMEM IS[] = {3, 4};
 const uint8_t PROGMEM HAPPY[] = {6, 10};
@@ -76,6 +78,7 @@ void showTime(uint8_t m, uint8_t h) {
     lightWord(TWENTY);
     lightWord(FIVE);
     lightWord(PAST);
+            
     break;
 
   case 6: // 28–32 → HALF PAST
