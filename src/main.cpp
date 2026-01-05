@@ -94,7 +94,7 @@ Alarm *create_snooze_alarm() {
   alarm->id = rand() % 10000;
   DateTime now = rtc.now();
   alarm->timestamp = DateTime(now.year(), now.month(), now.day(), now.hour(),
-                              now.minute(), now.second());
+                              now.minute() + 1, now.second());
   return alarm;
 }
 
@@ -414,7 +414,7 @@ void set_brightness(String messageString) {
   Serial.println("[brightness] Showing time");
   showTime(now.minute(), now.hour());
 
-  Serial.println("[set_color] Exit");
+  Serial.println("[brightness] Exit");
 }
 void set_volume(String messageString) {
   Serial.println("[set_volume] Entry");
