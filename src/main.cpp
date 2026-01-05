@@ -39,7 +39,7 @@ Birthdate birthdate = {0, 0};
 
 QueueHandle_t mqttQueue;
 
-bool first_time_online = false;
+bool first_time_online = true;
 bool wifiConnected = false;
 const uint8_t sub_topics_count = 12;
 String sub_topics[sub_topics_count] = {"devices/" + DEVICEID + "/alarms/create",
@@ -59,9 +59,8 @@ String pub_topics[8] = {"devices/" + DEVICEID + "/status",
                         "devices/alarms",
                         "devices/volume",
                         "devices/color",
-                        "devices/brightness"
-                        "devices/" +
-                            DEVICEID + "/ringing",
+                        "devices/brightness",
+                        "devices/" + DEVICEID + "/ringing",
                         "devices/" + DEVICEID + "/log",
                         "devices/birthdate"};
 
@@ -132,8 +131,6 @@ void setup() {
   setupDfPlayer();
   setupTouch();
   setupMQTT();
-
-  Serial.println("mamad");
 
   if (startupAnimationHandle != NULL) {
     vTaskDelete(startupAnimationHandle);
@@ -385,8 +382,7 @@ void delete_alarm(String messageString) {
                    "deserializeJson");
     return;
   }
-
-  if (!doc["id"].is<uint32_t>()) {
+  if (!doc["id"].is<const char *>()) {
     Serial.println("[delete_alarm] Failed to parse alarm from JSON. no id");
     return;
   }
@@ -397,7 +393,7 @@ void delete_alarm(String messageString) {
     return;
   }
 
-  uint32_t id = doc["id"].as<uint32_t>();
+  uint32_t id = doc["id"].as<String>().toInt();
   Serial.print("[delete_alarm] Deleting alarm with id: ");
   Serial.println(id);
   // Parse ISO8601 time (most common format from Go)
@@ -523,7 +519,7 @@ void sync_time(String messageString) {
 void setupDfPlayer() {
   FPSerial.begin(9600, SERIAL_8N1, 16, 17);
   while (!player.begin(FPSerial)) {
-  // if (player.begin(FPSerial)) {
+    // if (player.begin(FPSerial)) {
     // Serial.println("DFPlayer Mini online!");
     delay(100);
   }
@@ -602,8 +598,9 @@ void mqttTask(void *pv) {
   for (;;) {
     if (wifiConnected) {
       if (client.connected()) { // already connected
-        if (!first_time_online) {
-          first_time_online = true;
+        if (first_time_online) {
+          Serial.println("first time online");
+          first_time_online = false;
           client.publish(getTopic(ACTION_GET_COLOR).c_str(), DEVICEID.c_str());
           client.publish(getTopic(ACTION_GET_VOLUME).c_str(), DEVICEID.c_str());
           client.publish(getTopic(ACTION_GET_ALL_ALARMS).c_str(),
