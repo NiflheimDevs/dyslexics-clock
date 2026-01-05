@@ -40,3 +40,8 @@ void showTime(uint8_t m, uint8_t h);
 void showHours(uint8_t h);
 void lightWord(const uint8_t word[2]);
 void showHappyBirthdayAnimation(void *pvParameters);
+void showStartupPattern(void *pvParameters);
+void pattern_rainbow(void *pvParameters);
+void pattern_confetti(void *pvParameters);
+void pattern_breathing(void *pvParameters);
+

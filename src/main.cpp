@@ -23,6 +23,7 @@ bool is_ringing = false;
 WiFiManager wifiManager;
 volatile bool start_portal = false;
 TaskHandle_t animationTaskHandle = NULL;
+TaskHandle_t startupAnimationHandle = NULL;
 
 struct MqttMsg {
   String topic;
@@ -118,6 +119,12 @@ void setup() {
   setupLED();
 
   // 2. Start animation task and get its handle
+  xTaskCreate(showStartupPattern, "StartupAnim",
+              4096,                   // Stack size
+              NULL,                   // Parameters
+              1,                      // Priority
+              &startupAnimationHandle // Task handle
+  );
 
   // 3. Run the rest of the setup procedures
   setupWifi();
@@ -128,6 +135,10 @@ void setup() {
 
   Serial.println("mamad");
 
+  if (startupAnimationHandle != NULL) {
+    vTaskDelete(startupAnimationHandle);
+    startupAnimationHandle = NULL;
+  }
   // 5. Clean up LEDs
   FastLED.clear();
   FastLED.show();
@@ -197,6 +208,15 @@ void mbCallback(char *topic, byte *message, unsigned int length) {
     ring(messageString);
   } else if (stringTopic == sub_topics[7]) {
     Serial.println("[mbCallback] Action: silent");
+    if (is_birthday) {
+      is_birthday = false;
+      if (animationTaskHandle != NULL) {
+        vTaskDelete(animationTaskHandle);
+        animationTaskHandle = NULL;
+      }
+      DateTime now = rtc.now();
+      showTime(now.hour(), now.minute());
+    }
     is_ringing = false;
     player.stop();
     Serial.println("Silenced");
@@ -502,13 +522,13 @@ void sync_time(String messageString) {
 
 void setupDfPlayer() {
   FPSerial.begin(9600, SERIAL_8N1, 16, 17);
-  // while (!player.begin(FPSerial)) {
-  if (player.begin(FPSerial)) {
-    Serial.println("DFPlayer Mini online!");
+  while (!player.begin(FPSerial)) {
+  // if (player.begin(FPSerial)) {
+    // Serial.println("DFPlayer Mini online!");
     delay(100);
   }
-  Serial.println("DFPlayer Mini not online!!!!!!!!");
-  // Serial.println("DFPlayer Mini online!");
+  // Serial.println("DFPlayer Mini not online!!!!!!!!");
+  Serial.println("DFPlayer Mini online!");
 }
 
 void setupLED() {
@@ -546,6 +566,8 @@ void ARDUINO_ISR_ATTR Stop() {
       vTaskDelete(animationTaskHandle);
       animationTaskHandle = NULL;
     }
+    DateTime now = rtc.now();
+    showTime(now.hour(), now.minute());
   }
   player.stop();
   Serial.println("Stop");
@@ -587,6 +609,8 @@ void mqttTask(void *pv) {
           client.publish(getTopic(ACTION_GET_ALL_ALARMS).c_str(),
                          DEVICEID.c_str());
           client.publish(getTopic(ACTION_GET_BRIGHTNESS).c_str(),
+                         DEVICEID.c_str());
+          client.publish(getTopic(ACTION_GET_BIRTHDATE).c_str(),
                          DEVICEID.c_str());
         }
         while (xQueueReceive(mqttQueue, &msg, 0)) {

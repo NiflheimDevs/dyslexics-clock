@@ -206,3 +206,72 @@ void showHappyBirthdayAnimation(void *pvParameters) {
     color_index = (color_index + 1) % num_colors; // Change color
   }
 }
+
+void showStartupPattern(void *pvParameters) {
+  uint16_t speed = 20;
+  uint16_t scale = 30;
+
+  for (;;) { // Infinite loop
+    for (int i = 0; i < NUM_LEDS; i++) {
+      // Create a 1D noise pattern that flows over time
+      uint8_t noise = inoise8(i * scale, millis() * speed);
+      // Map the noise value to a hue, creating a colorful plasma effect
+      leds[i] = CHSV(noise, 255, 255);
+    }
+    FastLED.show();
+    vTaskDelay(pdMS_TO_TICKS(10));
+  }
+}
+
+void pattern_rainbow(void *pvParameters) {
+  uint8_t initial_hue = 0;
+  for (;;) {
+    // fill_rainbow smoothly shifts through all the colors of the rainbow.
+    fill_rainbow(leds, NUM_LEDS, initial_hue,
+                 7); // The '7' is the delta between each LED's hue.
+    FastLED.show();
+    initial_hue++; // This increments the starting hue, making the rainbow move.
+    vTaskDelay(
+        pdMS_TO_TICKS(20)); // A 20ms delay for a smooth animation.
+  }
+}
+
+void pattern_confetti(void *pvParameters) {
+  for (;;) {
+    // This will fade all the LEDs toward black by a small amount each frame,
+    // creating a trailing effect.
+    fadeToBlackBy(leds, NUM_LEDS, 20);
+
+    // Each frame, pick a random LED and set it to a random, bright color.
+    int pos = random16(NUM_LEDS);
+    leds[pos] +=
+        CHSV(random8(), 255, 255); // Add to the existing color to make it brighter.
+
+    FastLED.show();
+    vTaskDelay(
+        pdMS_TO_TICKS(15)); // A 15ms delay keeps the animation fluid.
+  }
+}
+
+void pattern_breathing(void *pvParameters) {
+  uint8_t hue = 0;
+  for (;;) {
+    // beatsin8 creates a smooth 8-bit sine wave.
+    // This will oscillate the brightness between 64 and 255 at a rate of 10
+    // beats per minute.
+    uint8_t brightness = beatsin8(10, 64, 255);
+
+    // The color of the pulse will slowly and smoothly shift through the color
+    // spectrum.
+    CRGB color = CHSV(hue, 255, brightness);
+    fill_solid(leds, NUM_LEDS, color);
+
+    FastLED.show();
+
+    // EVERY_N_MILLISECONDS is a FastLED macro to limit how often code is run.
+    // Here, we increment the hue every 20 milliseconds to change the color.
+    EVERY_N_MILLISECONDS(20) { hue++; }
+
+    vTaskDelay(pdMS_TO_TICKS(10)); // Small delay for task switching.
+  }
+}
