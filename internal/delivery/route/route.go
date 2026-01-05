@@ -41,7 +41,7 @@ func RouteInit(app *wire.App) http.Handler {
 		r.Patch("/brightness", app.Handlers.DeviceHandler.UpdateBrightness)
 		r.Post("/bezanbekob", app.Handlers.DeviceHandler.Ring)
 		r.Post("/snooze", app.Handlers.DeviceHandler.Snooze)
-		r.Post("/silent", app.Handlers.DeviceHandler.Silent)
+		r.Post("/stop", app.Handlers.DeviceHandler.Silent)
 	})
 
 	return mux

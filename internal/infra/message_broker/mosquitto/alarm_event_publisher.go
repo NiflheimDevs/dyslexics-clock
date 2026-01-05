@@ -25,13 +25,25 @@ func NewAlarmEventPublisher(client mqtt.Client) *AlarmEventPublisher {
 func (p *AlarmEventPublisher) PublishCreate(deviceID string, alarm *model.Alarm) error {
 	topic := fmt.Sprintf("devices/%s/alarms/create", deviceID)
 	payload, _ := json.Marshal(alarm)
-	return p.client.Publish(topic, 1, false, payload).Error()
+	token := p.client.Publish(topic, 1, false, payload)
+	token.Wait()
+	err := token.Error()
+	if err != nil {
+		log.Printf("Error publishing create for device %s to topic %s: %v", deviceID, topic, err)
+	}
+	return err
 }
 
 func (p *AlarmEventPublisher) PublishUpdate(deviceID string, alarm *model.Alarm) error {
 	topic := fmt.Sprintf("devices/%s/alarms/update", deviceID)
 	payload, _ := json.Marshal(alarm)
-	return p.client.Publish(topic, 1, false, payload).Error()
+	token := p.client.Publish(topic, 1, false, payload)
+	token.Wait()
+	err := token.Error()
+	if err != nil {
+		log.Printf("Error publishing update for device %s to topic %s: %v", deviceID, topic, err)
+	}
+	return err
 }
 
 func (p *AlarmEventPublisher) PublishDelete(deviceID string, alarmID string) error {
@@ -46,23 +58,44 @@ func (p *AlarmEventPublisher) PublishDelete(deviceID string, alarmID string) err
 	}
 
 	payload, _ := json.Marshal(payloadStruct)
-	return p.client.Publish(topic, 1, false, payload).Error()
+	token := p.client.Publish(topic, 1, false, payload)
+	token.Wait()
+	err := token.Error()
+	if err != nil {
+		log.Printf("Error publishing delete for device %s to topic %s: %v", deviceID, topic, err)
+	}
+	return err
 }
 
 func (p *AlarmEventPublisher) PublishRing(deviceID string) error {
 	topic := fmt.Sprintf("devices/%s/ring", deviceID)
-	log.Println("publishing "+topic)
-	return p.client.Publish(topic, 1, false, nil).Error()
+	token := p.client.Publish(topic, 1, false, nil)
+	token.Wait()
+	err := token.Error()
+	if err != nil {
+		log.Printf("Error publishing ring for device %s to topic %s: %v", deviceID, topic, err)
+	}
+	return err
 }
 
 func (p *AlarmEventPublisher) PublishSnooze(deviceID string) error {
 	topic := fmt.Sprintf("devices/%s/snooze", deviceID)
-	log.Println("publishing "+topic)
-	return p.client.Publish(topic, 1, false, nil).Error()
+	token := p.client.Publish(topic, 1, false, nil)
+	token.Wait()
+	err := token.Error()
+	if err != nil {
+		log.Printf("Error publishing silent for device %s to topic %s: %v", deviceID, topic, err)
+	}
+	return err
 }
 
 func (p *AlarmEventPublisher) PublishSilent(deviceID string) error {
 	topic := fmt.Sprintf("devices/%s/silent", deviceID)
-	log.Println("publishing "+topic)
-	return p.client.Publish(topic, 1, false, nil).Error()
+	token := p.client.Publish(topic, 1, false, nil)
+	token.Wait()
+	err := token.Error()
+	if err != nil {
+		log.Printf("Error publishing silent for device %s to topic %s: %v", deviceID, topic, err)
+	}
+	return err
 }
