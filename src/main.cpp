@@ -284,7 +284,7 @@ void add_alarms_batch(String messageString) {
     Serial.println("Failed to parse delete alarm from JSON in deserializeJson");
     return;
   }
-  JsonArray alarms = doc["alarms"].as<JsonArray>();
+  JsonArray alarms = doc.as<JsonArray>();
   for (JsonVariantConst v : alarms) {
     add_alarm(v.as<String>());
   }
@@ -510,6 +510,8 @@ void loop() {
   showTime(now.minute(), now.hour());
 
   if (DEBUGMODE) {
+    Serial.println("alarm heap debug");
+    Serial.printf("Size: %d\n", alarmHeap.size());
     for (uint8_t i = 0; i < alarmHeap.size(); i++) {
       print_alarm(alarmHeap.alarms[i]);
     }
