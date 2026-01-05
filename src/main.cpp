@@ -4,6 +4,7 @@
 #include "ArduinoJson/Deserialization/DeserializationError.hpp"
 #include "ArduinoJson/Document/JsonDocument.hpp"
 #include "HardwareSerial.h"
+#include "RTClib.h"
 #include "WiFi.h"
 #include "WiFiGeneric.h"
 #include "WiFiManager.h"
@@ -389,6 +390,7 @@ void sync_time(String messageString) {
   unsigned long unixTime = messageString.toInt();
 
   DateTime time(unixTime);
+    time = time + TimeSpan(0, 3, 30, 0);
 
   rtc.adjust(time);
 
@@ -568,7 +570,7 @@ Alarm *copy_alarm_for_snooze(Alarm *snoozed_alarm) {
   Alarm *snoozed_alarm_copy = new Alarm();
   snoozed_alarm_copy->id = snoozed_alarm->id;
   snoozed_alarm_copy->timestamp =
-      snoozed_alarm->timestamp + TimeSpan(0, 0, 5, 0);
+      snoozed_alarm->timestamp + TimeSpan(0, 0, 1, 0);
   snoozed_alarm_copy->is_repeat = false;
   snoozed_alarm_copy->repeating_days_count =
       snoozed_alarm->repeating_days_count;
