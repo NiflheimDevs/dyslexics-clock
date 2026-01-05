@@ -1,6 +1,7 @@
 package serviceimpl
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -80,6 +81,30 @@ func (p *PublisherService) PublishColor(deviceID string, color string) error {
 	err := p.RequestPublisher.PublishColor(deviceID, color)
 	if err != nil {
 		log.Println("error publishing color", err)
+		return err
+	}
+	return nil
+}
+
+func (p *PublisherService) Ring(id uint) error {
+	go p.AlarmEventPublisher.PublishRing(fmt.Sprint(id))
+	return nil
+}
+
+func (p *PublisherService) Snooze(id uint) error {
+	go p.AlarmEventPublisher.PublishSnooze(fmt.Sprint(id))
+	return nil
+}
+
+func (p *PublisherService) Silent(id uint) error {
+	go p.AlarmEventPublisher.PublishSilent(fmt.Sprint(id))
+	return nil
+}
+
+func (p *PublisherService) PublishBrightness(deviceID string, brightness uint) error {
+	err := p.RequestPublisher.PublishBrightness(deviceID, brightness)
+	if err != nil {
+		log.Println("error publishing brightness", err)
 		return err
 	}
 	return nil

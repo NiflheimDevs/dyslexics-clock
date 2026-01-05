@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS "devices" (
     "password" bytea NOT NULL,
     "color" text NOT NULL DEFAULT 'white',
     "volume" INTEGER NOT NULL DEFAULT 20,
+    "brightness" INTEGER NOT NULL DEFAULT 100,
     "timezone" text NOT NULL DEFAULT 'UTC',
     "created_at" Timestamp WITH TIME ZONE NOT NULL DEFAULT now()
 );

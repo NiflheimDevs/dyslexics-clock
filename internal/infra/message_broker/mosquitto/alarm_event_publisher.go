@@ -47,3 +47,18 @@ func (p *AlarmEventPublisher) PublishDelete(deviceID string, alarmID string) err
 	payload, _ := json.Marshal(payloadStruct)
 	return p.client.Publish(topic, 1, false, payload).Error()
 }
+
+func (p *AlarmEventPublisher) PublishRing(deviceID string) error {
+	topic := fmt.Sprintf("devices/%s/ring", deviceID)
+	return p.client.Publish(topic, 1, false, nil).Error()
+}
+
+func (p *AlarmEventPublisher) PublishSnooze(deviceID string) error {
+	topic := fmt.Sprintf("devices/%s/snooze", deviceID)
+	return p.client.Publish(topic, 1, false, nil).Error()
+}
+
+func (p *AlarmEventPublisher) PublishSilent(deviceID string) error {
+	topic := fmt.Sprintf("devices/%s/silent", deviceID)
+	return p.client.Publish(topic, 1, false, nil).Error()
+}

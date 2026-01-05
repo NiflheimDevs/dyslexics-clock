@@ -42,7 +42,7 @@ func InitApp(di *bootstrap.Di) (*App, error) {
 	secretSauce := pkg.NewSecretSauce()
 	jwt := serviceimpl.NewJWT(constants)
 	deviceService := serviceimpl.NewDeviceService(deviceRepo, secretSauce, jwt, publisherService)
-	deviceHandler := handler.NewDeviceHandler(constants, deviceService, validatorWrapper)
+	deviceHandler := handler.NewDeviceHandler(constants, deviceService, validatorWrapper, publisherService)
 	handlers := &Handlers{
 		AlarmHandler:  alarmHandler,
 		DeviceHandler: deviceHandler,

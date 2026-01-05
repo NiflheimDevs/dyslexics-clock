@@ -66,3 +66,17 @@ func (p *RequestPublisher) PublishVolume(deviceID string, volume uint) error {
 	}
 	return token.Error()
 }
+	
+func (p *RequestPublisher) PublishBrightness(deviceID string, brightness uint) error {
+	topic := fmt.Sprintf("devices/%s/volume", deviceID)
+
+	token := p.client.Publish(topic, p.qos, false, fmt.Append(nil, brightness))
+	token.Wait() // Wait for the publication to complete
+	if token.Error() != nil {
+		log.Printf("Error publishing brightness for device %s to topic %s: %v", deviceID, topic, token.Error())
+	} else {
+		log.Printf("Published %d brightness for device %s to topic %s", brightness, deviceID, topic)
+	}
+	return token.Error()
+}
+	

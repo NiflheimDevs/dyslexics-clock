@@ -9,4 +9,8 @@ type PublisherService interface {
 	PublishAlarmDelete(deviceID string, alarmID string) error
 	PublishVolume(deviceID string, volume uint) error
 	PublishColor(deviceID string, color string) error
+	Ring(id uint) error
+	Snooze(id uint) error
+	Silent(id uint) error
+	PublishBrightness(deviceID string, brightness uint) error
 }

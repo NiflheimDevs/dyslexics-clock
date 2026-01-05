@@ -12,10 +12,10 @@ import (
 )
 
 type DeviceService struct {
-	SecretSauce pkg.SecretSauce
-	DeviceRepo  repository.DeviceRepo
-	Publisher   service.PublisherService
-	JWTService  service.JWT
+	SecretSauce      pkg.SecretSauce
+	DeviceRepo       repository.DeviceRepo
+	PublisherService service.PublisherService
+	JWTService       service.JWT
 }
 
 func NewDeviceService(deviceRepo repository.DeviceRepo,
@@ -24,10 +24,10 @@ func NewDeviceService(deviceRepo repository.DeviceRepo,
 	p service.PublisherService,
 ) *DeviceService {
 	return &DeviceService{
-		DeviceRepo:  deviceRepo,
-		SecretSauce: secretSauce,
-		JWTService:  jwtService,
-		Publisher:   p,
+		DeviceRepo:       deviceRepo,
+		SecretSauce:      secretSauce,
+		JWTService:       jwtService,
+		PublisherService: p,
 	}
 }
 
@@ -60,7 +60,7 @@ func (d *DeviceService) UpdateDeviceColor(ctx context.Context, id uint, newColor
 	if err != nil {
 		return err
 	}
-	go d.Publisher.PublishColor(fmt.Sprint(id), newColor)
+	go d.PublisherService.PublishColor(fmt.Sprint(id), newColor)
 	return nil
 }
 
@@ -69,6 +69,15 @@ func (d *DeviceService) UpdateDeviceVolume(ctx context.Context, id uint, newVolu
 	if err != nil {
 		return err
 	}
-	go d.Publisher.PublishVolume(fmt.Sprint(id), newVolume)
+	go d.PublisherService.PublishVolume(fmt.Sprint(id), newVolume)
+	return nil
+}
+
+func (d *DeviceService) UpdateDeviceBrightness(ctx context.Context, id uint, newBrightness uint) error {
+	err := d.DeviceRepo.UpdateBrightness(ctx, id, newBrightness)
+	if err != nil {
+		return err
+	}
+	go d.PublisherService.PublishBrightness(fmt.Sprint(id), newBrightness)
 	return nil
 }

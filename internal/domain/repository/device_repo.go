@@ -12,4 +12,5 @@ type DeviceRepo interface {
 	GetDeviceById(ctx context.Context, Id uint) (*model.Device, error)
 	UpdateColor(ctx context.Context, Id uint, color string) error
 	UpdateVolume(ctx context.Context, Id uint, volume uint) error
+	UpdateBrightness(ctx context.Context, Id uint, brightness uint) error
 }

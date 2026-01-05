@@ -12,4 +12,5 @@ type DeviceService interface {
 	UpdateDeviceColor(ctx context.Context, id uint, newColor string) error
 	GetDeviceById(ctx context.Context, id uint) (*model.Device, error)
 	UpdateDeviceVolume(ctx context.Context, id uint, newVolume uint) error
+	UpdateDeviceBrightness(ctx context.Context, id uint, newBrightness uint) error
 }
