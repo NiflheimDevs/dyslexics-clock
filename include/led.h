@@ -37,3 +37,4 @@ extern const uint8_t PROGMEM BIRTHDAY[];
 void showTime(uint8_t m, uint8_t h);
 void showHours(uint8_t h);
 void lightWord(const uint8_t word[2]);
+void showHappyBirthdayAnimation(void *pvParameters);

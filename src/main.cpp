@@ -22,6 +22,7 @@ Alarm *prev = NULL;
 bool is_ringing = false;
 WiFiManager wifiManager;
 volatile bool start_portal = false;
+TaskHandle_t animationTaskHandle = NULL;
 
 struct MqttMsg {
   String topic;
@@ -101,13 +102,36 @@ AlarmHeap alarmHeap;
 
 void setup() {
   Serial.begin(115200);
+
+  // 1. Initialize LEDs first
+  setupLED();
+
+  // 2. Start animation task and get its handle
+  xTaskCreate(showHappyBirthdayAnimation, "BirthdayAnimation",
+              1024, // Stack size
+              NULL, // Parameters
+              1,    // Priority
+              &animationTaskHandle  // Task handle
+  );
+
+  // 3. Run the rest of the setup procedures
   setupWifi();
   setupRTC();
-  setupLED();
   setupDfPlayer();
   setupTouch();
   setupMQTT();
+
   Serial.println("mamad");
+
+  // 4. Stop the animation task by killing it
+  if (animationTaskHandle != NULL) {
+    vTaskDelete(animationTaskHandle);
+    animationTaskHandle = NULL;
+  }
+
+  // 5. Clean up LEDs
+  FastLED.clear();
+  FastLED.show();
 }
 
 void setupRTC() {

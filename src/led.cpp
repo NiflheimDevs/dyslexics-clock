@@ -1,4 +1,5 @@
 #include "led.h"
+#include "Arduino.h"
 #include "FastLED.h"
 
 CRGB leds[NUM_LEDS];
@@ -171,5 +172,33 @@ void showHours(uint8_t h) {
   case 12:
     lightWord(h_TWELVE);
     break;
+  }
+}
+
+void showHappyBirthdayAnimation(void *pvParameters) {
+  CRGB colors[] = {CRGB::Red,   CRGB::Green, CRGB::Blue,
+                   CRGB::Yellow, CRGB::Purple, CRGB::Orange};
+  int num_colors = sizeof(colors) / sizeof(colors[0]);
+  int color_index = 0;
+
+  for (;;) { // Infinite loop
+    // Light up HAPPY
+    for (uint8_t i = HAPPY[0]; i <= HAPPY[1]; i++) {
+      leds[i] = colors[color_index];
+    }
+
+    // Light up BIRTHDAY
+    for (uint8_t i = BIRTHDAY[0]; i <= BIRTHDAY[1]; i++) {
+      leds[i] = colors[color_index];
+    }
+
+    FastLED.show();
+    vTaskDelay(pdMS_TO_TICKS(500)); // On time
+
+    FastLED.clear();
+    FastLED.show();
+    vTaskDelay(pdMS_TO_TICKS(500)); // Off time
+
+    color_index = (color_index + 1) % num_colors; // Change color
   }
 }
