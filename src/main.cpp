@@ -36,7 +36,7 @@ String sub_topics[sub_topics_count] = {"devices/" + DEVICEID + "/alarms/create",
                                        "devices/" + DEVICEID + "/color",
                                        "devices/" + DEVICEID + "/volume",
                                        "devices/" + DEVICEID + "/ring",
-                                       "devices/" + DEVICEID + "/silence",
+                                       "devices/" + DEVICEID + "/silent",
                                        "devices/" + DEVICEID + "/snooze",
                                        "devices/time"};
 
