@@ -8,8 +8,8 @@
 
 const String DEVICEID = "1";
 
-extern String sub_topics[10];
-extern String pub_topics[6];
+extern String sub_topics[11];
+extern String pub_topics[7];
 
 enum ActionPublish {
   ACTION_STATUS,
@@ -17,7 +17,8 @@ enum ActionPublish {
   ACTION_GET_COLOR,
   ACTION_GET_VOLUME,
   ACTION_RINGING,
-  ACTION_LOG
+  ACTION_LOG,
+  ACTION_GET_BRIGHTNESS
 };
 
 extern RTC_DS3231 rtc;
@@ -61,6 +62,7 @@ void delete_alarm(String messageString);
 void add_alarms_batch(String messageString);
 void set_color(String messageString);
 void set_volume(String messageString);
+void set_brightness(String messageString);
 void ring(String messageString);
 void sync_time(String messageString);
 

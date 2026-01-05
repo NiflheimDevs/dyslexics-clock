@@ -32,7 +32,7 @@ QueueHandle_t mqttQueue;
 
 bool first_time_online = false;
 bool wifiConnected = false;
-const uint8_t sub_topics_count = 10;
+const uint8_t sub_topics_count = 11;
 String sub_topics[sub_topics_count] = {"devices/" + DEVICEID + "/alarms/create",
                                        "devices/" + DEVICEID + "/alarms/update",
                                        "devices/" + DEVICEID + "/alarms/delete",
@@ -42,13 +42,16 @@ String sub_topics[sub_topics_count] = {"devices/" + DEVICEID + "/alarms/create",
                                        "devices/" + DEVICEID + "/ring",
                                        "devices/" + DEVICEID + "/silent",
                                        "devices/" + DEVICEID + "/snooze",
+                                       "devices/" + DEVICEID + "/brightness",
                                        "devices/time"};
 
-String pub_topics[6] = {"devices/" + DEVICEID + "/status",
+String pub_topics[7] = {"devices/" + DEVICEID + "/status",
                         "devices/alarms",
                         "devices/volume",
                         "devices/color",
-                        "devices/" + DEVICEID + "/ringing",
+                        "devices/brightness"
+                        "devices/" +
+                            DEVICEID + "/ringing",
                         "devices/" + DEVICEID + "/log"};
 
 String getTopic(ActionPublish action) {
@@ -58,13 +61,15 @@ String getTopic(ActionPublish action) {
   case ACTION_GET_ALL_ALARMS:
     return pub_topics[1];
   case ACTION_RINGING:
-    return pub_topics[4];
-  case ACTION_LOG:
     return pub_topics[5];
+  case ACTION_LOG:
+    return pub_topics[6];
   case ACTION_GET_COLOR:
     return pub_topics[3];
   case ACTION_GET_VOLUME:
     return pub_topics[2];
+  case ACTION_GET_BRIGHTNESS:
+    return pub_topics[4];
   default:
     return "";
   }
@@ -177,6 +182,9 @@ void mbCallback(char *topic, byte *message, unsigned int length) {
     Snooze();
     is_ringing = false;
   } else if (stringTopic == sub_topics[9]) {
+    Serial.println("[mbCallback] Action: brightness");
+    set_brightness(messageString);
+  } else if (stringTopic == sub_topics[10]) {
     Serial.println("[mbCallback] Action: sync_time");
     sync_time(messageString);
   } else {
@@ -368,6 +376,22 @@ void set_color(String messageString) {
   Serial.println("[set_color] Exit");
 }
 
+void set_brightness(String messageString) {
+  Serial.println("[brightness] Entry");
+  uint8_t brightness = messageString.toInt();
+  if (brightness <= 0 || brightness > 255) {
+    Serial.println("[brightness] Invalid brightness value. Expected 0-255");
+    return;
+  }
+
+  BRIGHTNESS = brightness;
+
+  DateTime now = rtc.now();
+  Serial.println("[brightness] Showing time");
+  showTime(now.minute(), now.hour());
+
+  Serial.println("[set_color] Exit");
+}
 void set_volume(String messageString) {
   Serial.println("[set_volume] Entry");
   volume = messageString.toInt();
@@ -483,6 +507,8 @@ void mqttTask(void *pv) {
           client.publish(getTopic(ACTION_GET_COLOR).c_str(), DEVICEID.c_str());
           client.publish(getTopic(ACTION_GET_VOLUME).c_str(), DEVICEID.c_str());
           client.publish(getTopic(ACTION_GET_ALL_ALARMS).c_str(),
+                         DEVICEID.c_str());
+          client.publish(getTopic(ACTION_GET_BRIGHTNESS).c_str(),
                          DEVICEID.c_str());
         }
         while (xQueueReceive(mqttQueue, &msg, 0)) {

@@ -3,9 +3,7 @@
 #define FPSerial Serial1
 #define LED_PIN 27
 #define NUM_LEDS 121
-#define BRIGHTNESS 185
-
-// extern volatile uint8_t brightness = 185;
+extern uint8_t BRIGHTNESS;
 
 extern CRGB leds[NUM_LEDS];
 

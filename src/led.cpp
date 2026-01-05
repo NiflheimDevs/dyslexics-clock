@@ -3,8 +3,7 @@
 
 CRGB leds[NUM_LEDS];
 CRGB gClockColor = CRGB::Green;
-
-// volatile uint8_t brightness = 185;
+uint8_t BRIGHTNESS = 185;
 
 const uint8_t PROGMEM IT[] = {0, 1};
 const uint8_t PROGMEM IS[] = {3, 4};
@@ -40,6 +39,7 @@ void lightWord(const uint8_t word[2]) {
 void showTime(uint8_t m, uint8_t h) {
   FastLED.clear();
   FastLED.show();
+  FastLED.setBrightness(BRIGHTNESS);
 
   lightWord(IT);
   lightWord(IS);
@@ -47,7 +47,7 @@ void showTime(uint8_t m, uint8_t h) {
   uint8_t block = (m + 2) / 5;
 
   switch (block) {
-        case 0: // 00–02 → o'clock
+  case 0: // 00–02 → o'clock
     showHours(h);
     lightWord(OCLOCK);
     break;
