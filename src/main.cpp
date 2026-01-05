@@ -521,7 +521,7 @@ void loop() {
     }
     Alarm *next = alarmHeap.get_top();
     DateTime next_time = alarmHeap.get_next_occurrence(next);
-    if (now >= next_time) {
+    if (now >= next_time && now < (next_time + TimeSpan(0, 0, 1, 0))) {
 
       Serial.print("ALARM TRIGGERED! ID: ");
       Serial.println(next->id);
