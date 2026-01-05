@@ -363,6 +363,11 @@ void set_color(String messageString) {
   } else {
     Serial.println("[set_color] Invalid color format. Expected #RRGGBB");
   }
+
+  DateTime now = rtc.now();
+  Serial.println("[set_color] Showing time");
+  showTime(now.minute(), now.hour());
+
   Serial.println("[set_color] Exit");
 }
 
@@ -404,10 +409,13 @@ void sync_time(String messageString) {
 
 void setupDfPlayer() {
   FPSerial.begin(9600, SERIAL_8N1, 16, 17);
-  while (!player.begin(FPSerial)) {
+  // while (!player.begin(FPSerial)) {
+  if (player.begin(FPSerial)) {
+        Serial.println("DFPlayer Mini online!");
     delay(100);
   }
-  Serial.println("DFPlayer Mini online!");
+  Serial.println("DFPlayer Mini not online!!!!!!!!");
+  // Serial.println("DFPlayer Mini online!");
 }
 
 void setupLED() {
@@ -595,8 +603,7 @@ void loop() {
     Serial.println("[loop] Got top alarm from heap");
     DateTime next_time = alarmHeap.get_next_occurrence(next);
     Serial.println("[loop] Got next occurrence");
-    if (now >= next_time && now < (next_time + TimeSpan(0, 0, 1, 0))) {
-
+    if (now.minute() == next_time.minute() && now.hour() == next_time.hour()) {
       Serial.print("ALARM TRIGGERED! ID: ");
       Serial.println(next->id);
 
@@ -616,5 +623,5 @@ void loop() {
     Serial.println("[loop] Alarm heap is empty");
   }
   Serial.println("[loop] Starting delay");
-  vTaskDelay(pdMS_TO_TICKS(60000));
+  vTaskDelay(pdMS_TO_TICKS(59000));
 }

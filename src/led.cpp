@@ -1,4 +1,5 @@
 #include "led.h"
+#include "FastLED.h"
 
 CRGB leds[NUM_LEDS];
 CRGB gClockColor = CRGB::Green;
@@ -38,6 +39,7 @@ void lightWord(const uint8_t word[2]) {
 
 void showTime(uint8_t m, uint8_t h) {
   FastLED.clear();
+  FastLED.show();
 
   lightWord(IT);
   lightWord(IS);
@@ -45,7 +47,7 @@ void showTime(uint8_t m, uint8_t h) {
   uint8_t block = (m + 2) / 5;
 
   switch (block) {
-  case 0: // 00–02 → o'clock
+        case 0: // 00–02 → o'clock
     showHours(h);
     lightWord(OCLOCK);
     break;
@@ -78,7 +80,7 @@ void showTime(uint8_t m, uint8_t h) {
     lightWord(TWENTY);
     lightWord(FIVE);
     lightWord(PAST);
-            
+    showHours(h);
     break;
 
   case 6: // 28–32 → HALF PAST
