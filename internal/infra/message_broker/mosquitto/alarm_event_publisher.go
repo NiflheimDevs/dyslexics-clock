@@ -3,6 +3,7 @@ package mosquitto
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/model"
@@ -50,15 +51,18 @@ func (p *AlarmEventPublisher) PublishDelete(deviceID string, alarmID string) err
 
 func (p *AlarmEventPublisher) PublishRing(deviceID string) error {
 	topic := fmt.Sprintf("devices/%s/ring", deviceID)
+	log.Println("publishing "+topic)
 	return p.client.Publish(topic, 1, false, nil).Error()
 }
 
 func (p *AlarmEventPublisher) PublishSnooze(deviceID string) error {
 	topic := fmt.Sprintf("devices/%s/snooze", deviceID)
+	log.Println("publishing "+topic)
 	return p.client.Publish(topic, 1, false, nil).Error()
 }
 
 func (p *AlarmEventPublisher) PublishSilent(deviceID string) error {
 	topic := fmt.Sprintf("devices/%s/silent", deviceID)
+	log.Println("publishing "+topic)
 	return p.client.Publish(topic, 1, false, nil).Error()
 }
