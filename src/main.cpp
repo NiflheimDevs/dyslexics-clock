@@ -106,6 +106,7 @@ void setup() {
   setupDfPlayer();
   setupTouch();
   setupMQTT();
+  Serial.println("mamad");
 }
 
 void setupRTC() {
@@ -133,6 +134,7 @@ void setupMQTT() {
 }
 
 void mbCallback(char *topic, byte *message, unsigned int length) {
+  Serial.println("[mbCallback] Entry");
   Serial.print("Message arrived on topic: ");
   Serial.print(topic);
   Serial.print(". Message: ");
@@ -145,63 +147,89 @@ void mbCallback(char *topic, byte *message, unsigned int length) {
   Serial.println();
 
   String stringTopic = String(topic);
+  Serial.println("[mbCallback] Topic: " + stringTopic);
+  Serial.println("[mbCallback] Message: " + messageString);
 
   if (stringTopic == sub_topics[0]) {
+    Serial.println("[mbCallback] Action: add_alarm");
     add_alarm(messageString);
   } else if (stringTopic == sub_topics[1]) {
+    Serial.println("[mbCallback] Action: update_alarm");
     update_alarm(messageString);
   } else if (stringTopic == sub_topics[2]) {
+    Serial.println("[mbCallback] Action: delete_alarm");
     delete_alarm(messageString);
   } else if (stringTopic == sub_topics[3]) {
+    Serial.println("[mbCallback] Action: add_alarms_batch");
     add_alarms_batch(messageString);
   } else if (stringTopic == sub_topics[4]) {
+    Serial.println("[mbCallback] Action: set_color");
     set_color(messageString);
   } else if (stringTopic == sub_topics[5]) {
+    Serial.println("[mbCallback] Action: set_volume");
     set_volume(messageString);
   } else if (stringTopic == sub_topics[6]) {
+    Serial.println("[mbCallback] Action: ring");
     ring(messageString);
   } else if (stringTopic == sub_topics[7]) {
+    Serial.println("[mbCallback] Action: silent");
     player.stop();
     Serial.println("Silenced");
   } else if (stringTopic == sub_topics[8]) {
+    Serial.println("[mbCallback] Action: snooze");
     Snooze();
   } else if (stringTopic == sub_topics[9]) {
+    Serial.println("[mbCallback] Action: sync_time");
     sync_time(messageString);
   } else {
-    Serial.println("No matching topic found.");
+    Serial.println("[mbCallback] No matching topic found.");
   }
+  Serial.println("[mbCallback] Exit");
 }
 Alarm *parseAlarmFromJson(const char *jsonString) {
+  Serial.println("[parseAlarmFromJson] Entry");
   JsonDocument doc;
 
   DeserializationError error = deserializeJson(doc, jsonString);
   if (error) {
+    Serial.print("[parseAlarmFromJson] deserializeJson() failed: ");
+    Serial.println(error.c_str());
     return nullptr;
   }
 
   if (!doc["id"].is<uint32_t>()) {
+    Serial.println("[parseAlarmFromJson] 'id' is not a uint32_t.");
     return nullptr;
   }
 
   if (!doc["time"].is<const char *>()) {
+    Serial.println("[parseAlarmFromJson] 'time' is not a const char*.");
     return nullptr;
   }
 
   Alarm *alarm = new Alarm();
-  if (!alarm)
+  if (!alarm) {
+    Serial.println("[parseAlarmFromJson] Failed to allocate memory for Alarm.");
     return nullptr;
+  }
 
   alarm->id = doc["id"].as<uint32_t>();
+  Serial.print("[parseAlarmFromJson] Alarm ID: ");
+  Serial.println(alarm->id);
 
   // Parse ISO8601 time (most common format from Go)
   const char *timeStr = doc["time"];
+  Serial.print("[parseAlarmFromJson] Time string: ");
+  Serial.println(timeStr);
   // We expect something like: "2025-04-10T14:30:00"  or with Z / offset
   alarm->timestamp = DateTime(timeStr); // RTClib's DateTime can parse ISO8601
 
   if (!alarm->timestamp.isValid()) {
+    Serial.println("[parseAlarmFromJson] Failed to parse timestamp.");
     delete alarm;
     return nullptr;
   }
+  Serial.println("[parseAlarmFromJson] Timestamp parsed successfully.");
 
   // is_repeat – defaults to false if missing
   alarm->is_repeat = doc["is_repeat"] | false;
@@ -223,73 +251,95 @@ Alarm *parseAlarmFromJson(const char *jsonString) {
       }
     }
   }
+  Serial.print("[parseAlarmFromJson] repeating_days_count: ");
+  Serial.println(alarm->repeating_days_count);
 
+  Serial.println("[parseAlarmFromJson] Exit (Success)");
   return alarm;
 }
 void add_alarm(String messageString) {
+  Serial.println("[add_alarm] Entry");
   Alarm *alarm = parseAlarmFromJson(messageString.c_str());
   if (alarm == nullptr) {
-    Serial.println("Failed to parse alarm from JSON");
+    Serial.println("[add_alarm] Failed to parse alarm from JSON");
     return;
   }
   alarmHeap.insert(alarm);
+  Serial.println("[add_alarm] Exit");
 }
 
 void update_alarm(String messageString) {
+  Serial.println("[update_alarm] Entry");
   Alarm *updated_alarm = parseAlarmFromJson(messageString.c_str());
   if (updated_alarm == nullptr) {
-    Serial.println("Failed to parse alarm from JSON");
+    Serial.println("[update_alarm] Failed to parse alarm from JSON");
     return;
   }
   alarmHeap.update_alarm(updated_alarm->id, updated_alarm);
+  Serial.println("[update_alarm] Exit");
 }
 void delete_alarm(String messageString) {
+  Serial.println("[delete_alarm] Entry");
   JsonDocument doc;
 
   DeserializationError error = deserializeJson(doc, messageString.c_str());
   if (error) {
-    Serial.println("Failed to parse delete alarm from JSON in deserializeJson");
+    Serial.println("[delete_alarm] Failed to parse delete alarm from JSON in "
+                   "deserializeJson");
     return;
   }
 
   if (!doc["id"].is<uint32_t>()) {
-    Serial.println("Failed to parse alarm from JSON. no id");
+    Serial.println("[delete_alarm] Failed to parse alarm from JSON. no id");
     return;
   }
 
   if (!doc["deleted_at"].is<const char *>()) {
-    Serial.println("Failed to parse alarm from JSON. no time");
+    Serial.println(
+        "[delete_alarm] Failed to parse alarm from JSON. no deleted_at");
     return;
   }
 
   uint32_t id = doc["id"].as<uint32_t>();
+  Serial.print("[delete_alarm] Deleting alarm with id: ");
+  Serial.println(id);
   // Parse ISO8601 time (most common format from Go)
-  const char *timeStr = doc["time"];
+  const char *timeStr = doc["deleted_at"];
+  Serial.print("[delete_alarm] deleted_at string: ");
+  Serial.println(timeStr);
   // We expect something like: "2025-04-10T14:30:00"  or with Z / offset
   DateTime timestamp = DateTime(timeStr); // RTClib's DateTime can parse ISO8601
 
   if (!timestamp.isValid()) {
-    Serial.println("Failed to parse alarm from JSON. invalid time");
+    Serial.println("[delete_alarm] Failed to parse alarm from JSON. invalid "
+                   "deleted_at time");
     return;
   }
 
   alarmHeap.remove_alarm(id);
+  Serial.println("[delete_alarm] Exit");
 }
 
 void add_alarms_batch(String messageString) {
+  Serial.println("[add_alarms_batch] Entry");
   JsonDocument doc;
 
   DeserializationError error = deserializeJson(doc, messageString.c_str());
   if (error) {
-    Serial.println("Failed to parse delete alarm from JSON in deserializeJson");
+    Serial.println("[add_alarms_batch] Failed to parse batch from JSON in "
+                   "deserializeJson");
     return;
   }
   JsonArray alarms = doc.as<JsonArray>();
+  Serial.print("[add_alarms_batch] Number of alarms to add: ");
+  Serial.println(alarms.size());
   for (JsonVariantConst v : alarms) {
     add_alarm(v.as<String>());
   }
+  Serial.println("[add_alarms_batch] Exit");
 }
 void set_color(String messageString) {
+  Serial.println("[set_color] Entry");
   if (messageString.length() == 7 && messageString[0] == '#') {
     unsigned long hexValue =
         strtoul(messageString.substring(1).c_str(), NULL, 16);
@@ -310,18 +360,26 @@ void set_color(String messageString) {
     Serial.print(b);
     Serial.println(")");
   } else {
-    Serial.println("Invalid color format. Expected #RRGGBB");
+    Serial.println("[set_color] Invalid color format. Expected #RRGGBB");
   }
+  Serial.println("[set_color] Exit");
 }
 
 void set_volume(String messageString) {
+  Serial.println("[set_volume] Entry");
   volume = messageString.toInt();
   Serial.println("setting volume to " + messageString);
+  Serial.println("[set_volume] Exit");
 }
 
-void ring(String messageString) { AlarmStart(); }
+void ring(String messageString) {
+  Serial.println("[ring] Entry");
+  AlarmStart();
+  Serial.println("[ring] Exit");
+}
 
 void sync_time(String messageString) {
+  Serial.println("[sync_time] Entry");
   unsigned long unixTime = messageString.toInt();
 
   DateTime time(unixTime);
@@ -340,15 +398,15 @@ void sync_time(String messageString) {
   Serial.print(time.minute());
   Serial.print(":");
   Serial.println(time.second());
+  Serial.println("[sync_time] Exit");
 }
 
 void setupDfPlayer() {
   FPSerial.begin(9600, SERIAL_8N1, 16, 17);
-  if (player.begin(FPSerial)) {
-    Serial.println("DFPlayer Mini online!");
-  } else {
-    Serial.println("Unable to begin DFPlayer:");
+  while (!player.begin(FPSerial)) {
+    delay(100);
   }
+  Serial.println("DFPlayer Mini online!");
 }
 
 void setupLED() {
@@ -387,11 +445,9 @@ void AlarmStart() {
   if (DEBUGMODE) {
     Serial.println("Alarm Started!");
   }
-  if (player.begin(FPSerial)) {
-    Serial.println("DFPlayer Mini online!");
-    player.volume(volume);
-    player.play(1);
-  }
+
+  player.volume(volume);
+  player.play(2);
 }
 
 void wifiProcessor(void *args) {
@@ -491,6 +547,7 @@ void print_alarm(Alarm *alarm) {
 }
 
 Alarm *copy_alarm_for_snooze(Alarm *snoozed_alarm) {
+  Serial.println("[copy_alarm_for_snooze] Entry");
   Alarm *snoozed_alarm_copy = new Alarm();
   snoozed_alarm_copy->id = snoozed_alarm->id;
   snoozed_alarm_copy->timestamp =
@@ -501,42 +558,54 @@ Alarm *copy_alarm_for_snooze(Alarm *snoozed_alarm) {
   for (uint8_t i = 0; i < snoozed_alarm->repeating_days_count; i++) {
     snoozed_alarm_copy->repeating_days[i] = snoozed_alarm->repeating_days[i];
   }
+  Serial.println("[copy_alarm_for_snooze] Exit");
   return snoozed_alarm_copy;
 }
 
 void loop() {
+  Serial.println("[loop] Entry");
   DateTime now = rtc.now();
 
+  Serial.println("[loop] Showing time");
   showTime(now.minute(), now.hour());
 
   if (DEBUGMODE) {
-    Serial.println("alarm heap debug");
-    Serial.printf("Size: %d\n", alarmHeap.size());
+    Serial.println("[loop] Printing alarms (DEBUGMODE)");
     for (uint8_t i = 0; i < alarmHeap.size(); i++) {
       print_alarm(alarmHeap.alarms[i]);
     }
   }
   if (!alarmHeap.empty()) {
+    Serial.println("[loop] Alarm heap is not empty");
     if (prev != NULL) {
+      Serial.println("[loop] Re-inserting repeating alarm");
       alarmHeap.insert(prev);
       prev = NULL;
     }
     Alarm *next = alarmHeap.get_top();
+    Serial.println("[loop] Got top alarm from heap");
     DateTime next_time = alarmHeap.get_next_occurrence(next);
+    Serial.println("[loop] Got next occurrence");
     if (now >= next_time && now < (next_time + TimeSpan(0, 0, 1, 0))) {
 
       Serial.print("ALARM TRIGGERED! ID: ");
       Serial.println(next->id);
 
       alarmHeap.pop_top();
+      Serial.println("[loop] Popped alarm from heap");
       // process alarm
       if (next->is_repeat) {
+        Serial.println("[loop] Alarm is repeating");
         prev = next;
       } else {
+        Serial.println("[loop] Alarm is not repeating, deleting it");
         delete next;
       }
       AlarmStart();
     }
+  } else {
+    Serial.println("[loop] Alarm heap is empty");
   }
+  Serial.println("[loop] Starting delay");
   vTaskDelay(pdMS_TO_TICKS(60000));
 }
