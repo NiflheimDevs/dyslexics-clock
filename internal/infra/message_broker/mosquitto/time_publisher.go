@@ -1,6 +1,9 @@
 package mosquitto
 
 import (
+	"fmt"
+	"log"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -18,5 +21,11 @@ func NewTimePublisher(client mqtt.Client) *TimePublisher {
 
 func (p *TimePublisher) PublishTime(time int64) error {
 	topic := "devices/time"
-	return p.client.Publish(topic, 1, false, time).Error()
+	token := p.client.Publish(topic, 1, false, fmt.Append(nil, time))
+	token.Wait()
+	err := token.Error()
+	if err != nil {
+		log.Printf("Error publishing time to topic %s: %v", topic, err)
+	}
+	return err
 }
