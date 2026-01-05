@@ -210,7 +210,7 @@ func (dh *DeviceHandler) UpdateBrightness(w http.ResponseWriter, r *http.Request
 
 func (dh *DeviceHandler) UpdateBirthdate(w http.ResponseWriter, r *http.Request) {
 	type UpdateBirthdateRequest struct {
-		Birthdate time.Time `json:"brightness" validator:"required"`
+		Birthdate string `json:"birthdate" validator:"required"`
 	}
 
 	ctx := r.Context()
@@ -218,7 +218,12 @@ func (dh *DeviceHandler) UpdateBirthdate(w http.ResponseWriter, r *http.Request)
 
 	req := Validated[UpdateBirthdateRequest](dh.Validator, r)
 
-	err := dh.DeviceService.UpdateDeviceBirthdate(ctx, deviceID, req.Birthdate)
+	birthdate, err := time.Parse("2006-01-02", req.Birthdate)
+	if err != nil {
+		panic(err)
+	}
+
+	err = dh.DeviceService.UpdateDeviceBirthdate(ctx, deviceID, birthdate)
 	if err != nil {
 		panic(err)
 	}
