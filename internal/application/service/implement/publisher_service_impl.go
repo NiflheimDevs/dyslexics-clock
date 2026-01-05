@@ -109,3 +109,12 @@ func (p *PublisherService) PublishBrightness(deviceID string, brightness uint) e
 	}
 	return nil
 }
+
+func (p *PublisherService) PublishBirthdate(deviceID string, birthdate time.Time) error {
+	err := p.RequestPublisher.PublishBirthdate(deviceID, birthdate)
+	if err != nil {
+		log.Println("error publishing birthdate", err)
+		return err
+	}
+	return nil
+}

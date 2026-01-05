@@ -3,6 +3,7 @@ package serviceimpl
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/NiflheimDevs/dyslexics-clock/internal/application/service"
 	derror "github.com/NiflheimDevs/dyslexics-clock/internal/domain/error"
@@ -79,5 +80,14 @@ func (d *DeviceService) UpdateDeviceBrightness(ctx context.Context, id uint, new
 		return err
 	}
 	go d.PublisherService.PublishBrightness(fmt.Sprint(id), newBrightness)
+	return nil
+}
+
+func (d *DeviceService) UpdateDeviceBirthdate(ctx context.Context, id uint, newBirthdate time.Time) error {
+	err := d.DeviceRepo.UpdateBirthdate(ctx, id, newBirthdate)
+	if err != nil {
+		return err
+	}
+	go d.PublisherService.PublishBirthdate(fmt.Sprint(id), newBirthdate)
 	return nil
 }

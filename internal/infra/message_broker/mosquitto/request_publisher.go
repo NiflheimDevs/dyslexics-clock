@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/model"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -80,3 +81,15 @@ func (p *RequestPublisher) PublishBrightness(deviceID string, brightness uint) e
 	return token.Error()
 }
 	
+func (p *RequestPublisher) PublishBirthdate(deviceID string, birthdate time.Time) error {
+	topic := fmt.Sprintf("devices/%s/birthdate", deviceID)
+
+	token := p.client.Publish(topic, p.qos, false, fmt.Append(nil, birthdate))
+	token.Wait() // Wait for the publication to complete
+	if token.Error() != nil {
+		log.Printf("Error publishing birthdate for device %s to topic %s: %v", deviceID, topic, token.Error())
+	} else {
+		log.Printf("Published %d:%d birthdate for device %s to topic %s", birthdate.Month(), birthdate.Day(), deviceID, topic)
+	}
+	return token.Error()
+}

@@ -1,6 +1,10 @@
 package service
 
-import "github.com/NiflheimDevs/dyslexics-clock/internal/domain/model"
+import (
+	"time"
+
+	"github.com/NiflheimDevs/dyslexics-clock/internal/domain/model"
+)
 
 type PublisherService interface {
 	PublishTime() error
@@ -13,4 +17,5 @@ type PublisherService interface {
 	Snooze(id uint) error
 	Silent(id uint) error
 	PublishBrightness(deviceID string, brightness uint) error
+	PublishBirthdate(deviceID string, birthdate time.Time) error
 }

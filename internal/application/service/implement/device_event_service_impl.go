@@ -108,3 +108,25 @@ func (s *DeviceEventService) HandleGetBrightnessMessage(ctx context.Context, dev
 
 	return s.requestPublisher.PublishBrightness(deviceID, device.Volume)
 }
+
+func (s *DeviceEventService) HandleGetBirthdateMessage(ctx context.Context, deviceID string) error {
+	log.Printf("Received get volume device message for device ID: %s", deviceID)
+
+	// Convert deviceID string to uint
+	id, err := strconv.ParseUint(deviceID, 10, 64)
+	if err != nil {
+		log.Printf("Error converting device ID '%s' to uint: %v", deviceID, err)
+		return err // Or a more specific error type
+	}
+	deviceUintID := uint(id)
+
+	device, err := s.deviceRepo.GetDeviceById(ctx, deviceUintID)
+	if err != nil {
+		log.Printf("Error getting alarms for device %s: %v", deviceID, err)
+		return err
+	}
+	if device.Birthdate == nil {
+		return nil
+	}
+	return s.requestPublisher.PublishBirthdate(deviceID, *device.Birthdate)
+}

@@ -7,4 +7,5 @@ type DeviceEventService interface {
 	HandleGetColorMessage(ctx context.Context, deviceID string) error
 	HandleGetVolumeMessage(ctx context.Context, deviceID string) error
 	HandleGetBrightnessMessage(ctx context.Context, deviceID string) error
+	HandleGetBirthdateMessage(ctx context.Context, deviceID string) error
 }
