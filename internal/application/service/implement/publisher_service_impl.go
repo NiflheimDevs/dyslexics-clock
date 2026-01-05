@@ -33,7 +33,7 @@ func NewPublisherService(alarmEventPublisher messagebroker.AlarmEventPublisher, 
 }
 
 func (p *PublisherService) PublishTime() error {
-	err := p.TimePublisher.PublishTime(time.Now().UTC().UnixMilli())
+	err := p.TimePublisher.PublishTime(time.Now().UTC().Unix())
 	if err != nil {
 		log.Println("error publishing time", err)
 		return err
