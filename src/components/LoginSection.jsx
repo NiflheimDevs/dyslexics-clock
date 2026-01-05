@@ -15,6 +15,7 @@ const Login = ({ onLoginSuccess }) => {
     mutationFn: login,
     onSuccess: (response) => {
       const token = response.data.token;
+      console.log(token);
       localStorage.setItem("token", token);
       localStorage.setItem(
         "user",
@@ -23,7 +24,6 @@ const Login = ({ onLoginSuccess }) => {
       onLoginSuccess();
     },
     onError: (e) => {
-      console.log(e)
       toast.error("نام کاربری یا رمز عبور اشتباه است.");  
     },
   });

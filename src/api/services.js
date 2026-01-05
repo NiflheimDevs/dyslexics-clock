@@ -6,7 +6,7 @@ export const createAlarm = (data) => api.post("/alarm", data);
 
 export const BezanBekob = (data) => api.post("/device/bezanbekob", data);
 
-export const UpdateBrightness = (data) => api.post("/device/brightness", data);
+export const UpdateBrightness = (data) => api.patch("/device/brightness", data);
 
 export const GetBrightness = (data) => api.get("/device/brightness", data);
 

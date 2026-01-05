@@ -24,9 +24,9 @@ const AlarmControls = () => {
   // Update local brightness when data is fetched
   useEffect(() => {
     if (currentBrightness !== undefined) {
-      setBrightness(currentBrightness);
+      setBrightness(currentBrightness); 
     }
-  }, [currentBrightness]);
+  }, [currentBrightness]); 
 
   const handleStop = () => {
     stopAlarmMutation.mutate();
@@ -38,7 +38,7 @@ const AlarmControls = () => {
 
   const handleBezan = async () => {
     try {
-      console.log("بزن بکوب!");
+      // console.log("بزن بکوب!");
       bezanBekoبMutation.mutate();
     } catch (error) {
       console.error("Error:", error);
@@ -48,11 +48,11 @@ const AlarmControls = () => {
   const handleBrightnessChange = (e) => {
     const value = parseInt(e.target.value);
     setBrightness(value);
-    console.log("Brightness set to:", value);
+    // console.log("Brightness set to:", value);
   };
 
   const handleSubmit = () => {
-    updateBrightnessMutation.mutate(brightness);
+    updateBrightnessMutation.mutate({ brightness: brightness });
   };
 
   return (
