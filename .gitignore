@@ -1,4 +1,8 @@
 # Logs
+.cache
+internal
+.ccls
+.pio
 logs
 *.log
 npm-debug.log*
