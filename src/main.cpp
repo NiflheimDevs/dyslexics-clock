@@ -5,11 +5,18 @@
 #include "ArduinoJson/Document/JsonDocument.hpp"
 #include "HardwareSerial.h"
 #include "WiFi.h"
+#include "WiFiGeneric.h"
 #include "WiFiManager.h"
+#include "WiFiType.h"
+#include "fl/str.h"
 #include "freertos/projdefs.h"
 #include "led.h"
+#include <cstdint>
 #include <ctime>
 
+#define DEBUGMODE true
+
+Alarm *prev = NULL;
 WiFiManager wifiManager;
 
 struct MqttMsg {
@@ -21,7 +28,7 @@ QueueHandle_t mqttQueue;
 
 bool first_time_online = false;
 bool wifiConnected = false;
-const uint8_t sub_topics_count = 9;
+const uint8_t sub_topics_count = 10;
 String sub_topics[sub_topics_count] = {"devices/" + DEVICEID + "/alarms/create",
                                        "devices/" + DEVICEID + "/alarms/update",
                                        "devices/" + DEVICEID + "/alarms/delete",
@@ -30,6 +37,7 @@ String sub_topics[sub_topics_count] = {"devices/" + DEVICEID + "/alarms/create",
                                        "devices/" + DEVICEID + "/volume",
                                        "devices/" + DEVICEID + "/ring",
                                        "devices/" + DEVICEID + "/silence",
+                                       "devices/" + DEVICEID + "/snooze",
                                        "devices/time"};
 
 String pub_topics[6] = {"devices/" + DEVICEID + "/status",
@@ -154,7 +162,10 @@ void mbCallback(char *topic, byte *message, unsigned int length) {
     ring(messageString);
   } else if (stringTopic == sub_topics[7]) {
     player.stop();
+    Serial.println("Silenced");
   } else if (stringTopic == sub_topics[8]) {
+    Snooze();
+  } else if (stringTopic == sub_topics[9]) {
     sync_time(messageString);
   } else {
     Serial.println("No matching topic found.");
@@ -358,6 +369,13 @@ void setupTouch() {
 void ARDUINO_ISR_ATTR Snooze() {
   player.stop();
   Serial.println("Snooze");
+
+  if (prev != NULL) {
+    Alarm *alarm = copy_alarm_for_snooze(prev);
+    alarmHeap.insert(alarm);
+    if (DEBUGMODE)
+      Serial.println("snoozed alarm added");
+  }
 }
 
 void ARDUINO_ISR_ATTR Stop() {
@@ -366,6 +384,9 @@ void ARDUINO_ISR_ATTR Stop() {
 }
 
 void AlarmStart() {
+  if (DEBUGMODE) {
+    Serial.println("Alarm Started!");
+  }
   if (player.begin(FPSerial)) {
     Serial.println("DFPlayer Mini online!");
     player.volume(volume);
@@ -398,12 +419,7 @@ void mqttTask(void *pv) {
         }
         client.loop();
       } else { // connect and sub
-        if (client.connect(DEVICEID.c_str())) {
-          for (uint8_t i = 0; i < sub_topics_count; i++) {
-            client.subscribe(sub_topics[i].c_str(), 1);
-          }
-          client.loop();
-        }
+        connect_mqtt();
       }
       vTaskDelay(pdMS_TO_TICKS(10));
     }
@@ -426,7 +442,14 @@ void setupWifi() {
   xTaskCreate(wifiProcessor, "wifiProcessor", 4096, NULL, 2, NULL);
 }
 
-void ConnectMqtt() {}
+void connect_mqtt() {
+  if (client.connect(DEVICEID.c_str())) {
+    for (uint8_t i = 0; i < sub_topics_count; i++) {
+      client.subscribe(sub_topics[i].c_str(), 1);
+    }
+    client.loop();
+  }
+}
 
 void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
   Serial.print("WiFi Event:");
@@ -447,31 +470,69 @@ void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
     Serial.print("WiFi, got IP");
     Serial.println(WiFi.localIP());
     wifiConnected = true;
-
+    connect_mqtt();
     break;
   default:
     break;
   }
 }
 
+void print_alarm(Alarm *alarm) {
+  Serial.printf("ID: %d\nis_repeatable: %d\nHour: %d\nMinute: %d\n", alarm->id,
+                alarm->is_repeat, alarm->timestamp.hour(),
+                alarm->timestamp.minute());
+  Serial.print("repeating days: ");
+  for (uint8_t i; i < alarm->repeating_days_count; i++) {
+    Serial.printf("%d, ", alarm->repeating_days[i]);
+  }
+  Serial.println("___________________________");
+
+  return;
+}
+
+Alarm *copy_alarm_for_snooze(Alarm *snoozed_alarm) {
+  Alarm *snoozed_alarm_copy = new Alarm();
+  snoozed_alarm_copy->id = snoozed_alarm->id;
+  snoozed_alarm_copy->timestamp =
+      snoozed_alarm->timestamp + TimeSpan(0, 0, 5, 0);
+  snoozed_alarm_copy->is_repeat = false;
+  snoozed_alarm_copy->repeating_days_count =
+      snoozed_alarm->repeating_days_count;
+  for (uint8_t i = 0; i < snoozed_alarm->repeating_days_count; i++) {
+    snoozed_alarm_copy->repeating_days[i] = snoozed_alarm->repeating_days[i];
+  }
+  return snoozed_alarm_copy;
+}
+
 void loop() {
   DateTime now = rtc.now();
 
   showTime(now.minute(), now.hour());
+
+  if (DEBUGMODE) {
+    for (uint8_t i = 0; i < alarmHeap.size(); i++) {
+      print_alarm(alarmHeap.alarms[i]);
+    }
+  }
   if (!alarmHeap.empty()) {
+    if (prev != NULL) {
+      alarmHeap.insert(prev);
+      prev = NULL;
+    }
     Alarm *next = alarmHeap.get_top();
     DateTime next_time = alarmHeap.get_next_occurrence(next);
     if (now >= next_time) {
+
       Serial.print("ALARM TRIGGERED! ID: ");
       Serial.println(next->id);
 
       alarmHeap.pop_top();
       // process alarm
       if (next->is_repeat) {
-        alarmHeap.insert(next);
+        prev = next;
       } else {
+        delete next;
       }
-
       AlarmStart();
     }
   }

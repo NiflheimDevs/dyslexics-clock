@@ -14,9 +14,8 @@ public:
     int size();
     bool empty();
     DateTime get_next_occurrence(const Alarm *alarm);
-
-private:
     std::vector<Alarm*> alarms;
+private:
     void check_exception();
     void swap(int i1, int i2);
     bool should_come_before(const Alarm *a, const Alarm *b);

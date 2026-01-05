@@ -8,7 +8,7 @@
 
 const String DEVICEID = "1";
 
-extern String sub_topics[9];
+extern String sub_topics[10];
 extern String pub_topics[6];
 
 enum ActionPublish {
@@ -35,6 +35,7 @@ extern volatile int32_t stopPin;
 
 extern AlarmHeap alarmHeap;
 
+void connect_mqtt();
 String getTopic(ActionPublish action);
 void setup();
 void setupRTC();
@@ -53,6 +54,7 @@ Alarm *create_alarm(uint32_t id, uint32_t device_id, uint32_t timestamp,
                     bool is_repeat, Weekday *repeating_days,
                     uint8_t repeating_days_count);
 
+Alarm *copy_alarm_for_snooze(Alarm *snoozed_alarm);
 void add_alarm(String messageString);
 void update_alarm(String messageString);
 void delete_alarm(String messageString);
