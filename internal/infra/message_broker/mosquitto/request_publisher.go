@@ -67,7 +67,7 @@ func (p *RequestPublisher) PublishVolume(deviceID string, volume uint) error {
 	}
 	return token.Error()
 }
-	
+
 func (p *RequestPublisher) PublishBrightness(deviceID string, brightness uint) error {
 	topic := fmt.Sprintf("devices/%s/brightness", deviceID)
 
@@ -80,11 +80,15 @@ func (p *RequestPublisher) PublishBrightness(deviceID string, brightness uint) e
 	}
 	return token.Error()
 }
-	
+
 func (p *RequestPublisher) PublishBirthdate(deviceID string, birthdate time.Time) error {
 	topic := fmt.Sprintf("devices/%s/birthdate", deviceID)
-
-	token := p.client.Publish(topic, p.qos, false, fmt.Append(nil, birthdate))
+	payload, err := json.Marshal(map[string]int{"month": int(birthdate.Month()), "day": birthdate.Day()})
+	if err != nil {
+		log.Printf("Error marshalling birthdate for device %s: %v", deviceID, err)
+		return err
+	}
+	token := p.client.Publish(topic, p.qos, false, payload)
 	token.Wait() // Wait for the publication to complete
 	if token.Error() != nil {
 		log.Printf("Error publishing birthdate for device %s to topic %s: %v", deviceID, topic, token.Error())
