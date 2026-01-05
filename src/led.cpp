@@ -5,6 +5,7 @@
 CRGB leds[NUM_LEDS];
 CRGB gClockColor = CRGB::Green;
 uint8_t BRIGHTNESS = 185;
+bool is_birthday = false;
 
 const uint8_t PROGMEM IT[] = {0, 1};
 const uint8_t PROGMEM IS[] = {3, 4};
@@ -38,6 +39,9 @@ void lightWord(const uint8_t word[2]) {
 }
 
 void showTime(uint8_t m, uint8_t h) {
+  if (is_birthday) {
+    return;
+  }
   FastLED.clear();
   FastLED.show();
   FastLED.setBrightness(BRIGHTNESS);
@@ -176,7 +180,7 @@ void showHours(uint8_t h) {
 }
 
 void showHappyBirthdayAnimation(void *pvParameters) {
-  CRGB colors[] = {CRGB::Red,   CRGB::Green, CRGB::Blue,
+  CRGB colors[] = {CRGB::Red,    CRGB::Green,  CRGB::Blue,
                    CRGB::Yellow, CRGB::Purple, CRGB::Orange};
   int num_colors = sizeof(colors) / sizeof(colors[0]);
   int color_index = 0;

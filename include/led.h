@@ -9,6 +9,8 @@ extern CRGB leds[NUM_LEDS];
 
 extern CRGB gClockColor;
 
+extern bool is_birthday;
+
 extern const uint8_t PROGMEM IT[];
 extern const uint8_t PROGMEM IS[];
 extern const uint8_t PROGMEM HAPPY[];

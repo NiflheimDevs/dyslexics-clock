@@ -29,11 +29,18 @@ struct MqttMsg {
   String payload;
 };
 
+struct Birthdate {
+  uint8_t day;
+  uint8_t month;
+};
+
+Birthdate birthdate = {0, 0};
+
 QueueHandle_t mqttQueue;
 
 bool first_time_online = false;
 bool wifiConnected = false;
-const uint8_t sub_topics_count = 11;
+const uint8_t sub_topics_count = 12;
 String sub_topics[sub_topics_count] = {"devices/" + DEVICEID + "/alarms/create",
                                        "devices/" + DEVICEID + "/alarms/update",
                                        "devices/" + DEVICEID + "/alarms/delete",
@@ -44,16 +51,18 @@ String sub_topics[sub_topics_count] = {"devices/" + DEVICEID + "/alarms/create",
                                        "devices/" + DEVICEID + "/silent",
                                        "devices/" + DEVICEID + "/snooze",
                                        "devices/" + DEVICEID + "/brightness",
+                                       "devices/" + DEVICEID + "/birthdate",
                                        "devices/time"};
 
-String pub_topics[7] = {"devices/" + DEVICEID + "/status",
+String pub_topics[8] = {"devices/" + DEVICEID + "/status",
                         "devices/alarms",
                         "devices/volume",
                         "devices/color",
                         "devices/brightness"
                         "devices/" +
                             DEVICEID + "/ringing",
-                        "devices/" + DEVICEID + "/log"};
+                        "devices/" + DEVICEID + "/log",
+                        "devices/birthdate"};
 
 String getTopic(ActionPublish action) {
   switch (action) {
@@ -71,6 +80,8 @@ String getTopic(ActionPublish action) {
     return pub_topics[2];
   case ACTION_GET_BRIGHTNESS:
     return pub_topics[4];
+  case ACTION_GET_BIRTHDATE:
+    return pub_topics[7];
   default:
     return "";
   }
@@ -107,12 +118,6 @@ void setup() {
   setupLED();
 
   // 2. Start animation task and get its handle
-  xTaskCreate(showHappyBirthdayAnimation, "BirthdayAnimation",
-              1024, // Stack size
-              NULL, // Parameters
-              1,    // Priority
-              &animationTaskHandle  // Task handle
-  );
 
   // 3. Run the rest of the setup procedures
   setupWifi();
@@ -122,12 +127,6 @@ void setup() {
   setupMQTT();
 
   Serial.println("mamad");
-
-  // 4. Stop the animation task by killing it
-  if (animationTaskHandle != NULL) {
-    vTaskDelete(animationTaskHandle);
-    animationTaskHandle = NULL;
-  }
 
   // 5. Clean up LEDs
   FastLED.clear();
@@ -209,6 +208,9 @@ void mbCallback(char *topic, byte *message, unsigned int length) {
     Serial.println("[mbCallback] Action: brightness");
     set_brightness(messageString);
   } else if (stringTopic == sub_topics[10]) {
+    Serial.println("[mbCallback] Action: birthdate");
+    set_birthdate(messageString);
+  } else if (stringTopic == sub_topics[11]) {
     Serial.println("[mbCallback] Action: sync_time");
     sync_time(messageString);
   } else {
@@ -216,6 +218,51 @@ void mbCallback(char *topic, byte *message, unsigned int length) {
   }
   Serial.println("[mbCallback] Exit");
 }
+
+void set_birthdate(String messageString) {
+  Serial.println("[set_birthdate] Entry");
+  Serial.println("[set_birthdate] Message: " + messageString);
+
+  JsonDocument doc;
+
+  DeserializationError error = deserializeJson(doc, messageString);
+  if (error) {
+    Serial.print("[set_birthdate] deserializeJson() failed: ");
+    Serial.println(error.c_str());
+    return;
+  }
+  birthdate.month = doc["month"].as<uint8_t>();
+  birthdate.day = doc["day"].as<uint8_t>();
+  check_birthdate();
+  Serial.println("[set_birthdate] Exit");
+}
+
+void check_birthdate() {
+  Serial.println("[check_birthdate] Entry");
+  Serial.print("[check_birthdate] Birthdate: ");
+  Serial.print(birthdate.month);
+  Serial.print("/");
+  Serial.println(birthdate.day);
+
+  DateTime now = rtc.now();
+  Serial.print("[check_birthdate] Now: ");
+  Serial.print(now.month());
+  Serial.print("/");
+  Serial.println(now.day());
+
+  if (birthdate.month == now.month() && birthdate.day == now.day()) {
+    Serial.println("[check_birthdate] It's your birthday!");
+    xTaskCreate(showHappyBirthdayAnimation, "BirthdayAnimation",
+                1024,                // Stack size
+                NULL,                // Parameters
+                1,                   // Priority
+                &animationTaskHandle // Task handle
+    );
+    is_birthday = true;
+  }
+  Serial.println("[check_birthdate] Exit");
+}
+
 Alarm *parseAlarmFromJson(const char *jsonString) {
   Serial.println("[parseAlarmFromJson] Entry");
   JsonDocument doc;
@@ -493,6 +540,13 @@ void ARDUINO_ISR_ATTR Snooze() {
 }
 
 void ARDUINO_ISR_ATTR Stop() {
+  if (is_birthday) {
+    is_birthday = false;
+    if (animationTaskHandle != NULL) {
+      vTaskDelete(animationTaskHandle);
+      animationTaskHandle = NULL;
+    }
+  }
   player.stop();
   Serial.println("Stop");
 }
@@ -631,6 +685,11 @@ Alarm *copy_alarm_for_snooze(Alarm *snoozed_alarm) {
 
 void loop() {
   Serial.println("[loop] Entry");
+  if (is_birthday) {
+    Serial.println("[loop] Birthday");
+    vTaskDelay(pdMS_TO_TICKS(59000));
+    return;
+  }
   DateTime now = rtc.now();
 
   Serial.println("[loop] Showing time");

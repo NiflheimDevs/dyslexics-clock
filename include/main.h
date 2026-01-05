@@ -8,8 +8,8 @@
 
 const String DEVICEID = "1";
 
-extern String sub_topics[11];
-extern String pub_topics[7];
+extern String sub_topics[12];
+extern String pub_topics[8];
 
 enum ActionPublish {
   ACTION_STATUS,
@@ -18,7 +18,8 @@ enum ActionPublish {
   ACTION_GET_VOLUME,
   ACTION_RINGING,
   ACTION_LOG,
-  ACTION_GET_BRIGHTNESS
+  ACTION_GET_BRIGHTNESS,
+  ACTION_GET_BIRTHDATE
 };
 
 extern RTC_DS3231 rtc;
@@ -55,6 +56,7 @@ Alarm *create_alarm(uint32_t id, uint32_t device_id, uint32_t timestamp,
                     bool is_repeat, Weekday *repeating_days,
                     uint8_t repeating_days_count);
 
+void set_birthdate(String messageString);
 Alarm *copy_alarm_for_snooze(Alarm *snoozed_alarm);
 void add_alarm(String messageString);
 void update_alarm(String messageString);
@@ -66,4 +68,5 @@ void set_brightness(String messageString);
 void ring(String messageString);
 void sync_time(String messageString);
 
+void check_birthdate();
 void mqttTask(void *pv);
