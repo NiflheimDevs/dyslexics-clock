@@ -18,6 +18,7 @@
 
 Alarm *prev = NULL;
 WiFiManager wifiManager;
+volatile bool start_portal = false;
 
 struct MqttMsg {
   String topic;
@@ -453,6 +454,12 @@ void AlarmStart() {
 void wifiProcessor(void *args) {
   Serial.println("running wifi processor thread");
   for (;;) {
+    if (start_portal) {
+      Serial.println(
+          "[wifiProcessor] Starting config portal because of disconnect.");
+      wifiManager.startConfigPortal("DyslexicClock-Setup", "12345678");
+      start_portal = false;
+    }
     wifiManager.process();
     delay(500);
   }
@@ -515,12 +522,14 @@ void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
     break;
   case ARDUINO_EVENT_WIFI_STA_CONNECTED:
     Serial.println("WiFi, connected");
+    start_portal = false;
     break;
   case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
     Serial.println("WiFi, disconnected!");
     wifiConnected = false;
     client.disconnect();
     Serial.println("disconnceted from mqtt");
+    start_portal = true;
     break;
   case ARDUINO_EVENT_WIFI_STA_GOT_IP:
     Serial.print("WiFi, got IP");
