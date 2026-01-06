@@ -3,6 +3,7 @@ package repositoryimpl
 import (
 	"context"
 	"errors"
+	"log"
 
 	derror "github.com/NiflheimDevs/dyslexics-clock/internal/domain/error"
 	"github.com/jackc/pgx/v5"
@@ -13,6 +14,7 @@ func NormalizeDBError(err error, message string) error {
 	if err == nil {
 		return nil
 	}
+	log.Printf("DB error: %v\n", err)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return derror.New(derror.ErrTypeNotFound, message, err)
