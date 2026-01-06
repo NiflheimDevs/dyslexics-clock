@@ -113,25 +113,25 @@ func (s *DeviceEventSubscriber) Subscribe() error {
 	}
 
 	log.Printf("Successfully subscribed to topic: %s", deviceGetBrightness)
-	log.Printf("Subscribing to MQTT topic: %s", deviceGetBirthdate)
-
-	token = s.client.Subscribe(deviceGetBirthdate, s.qos, func(client mqtt.Client, msg mqtt.Message) {
-		deviceID := string(msg.Payload())
-		log.Printf("Received message on topic '%s': Device ID '%s'", msg.Topic(), deviceID)
-
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
-		defer cancel()
-
-		if err := s.deviceEventService.HandleGetBirthdateMessage(ctx, deviceID); err != nil {
-			log.Printf("Error handling device message for device ID '%s': %v", deviceID, err)
-		}
-	})
-
-	token.Wait()
-	if token.Error() != nil {
-		return token.Error()
-	}
-
-	log.Printf("Successfully subscribed to topic: %s", deviceGetBirthdate)
+	// log.Printf("Subscribing to MQTT topic: %s", deviceGetBirthdate)
+	//
+	// token = s.client.Subscribe(deviceGetBirthdate, s.qos, func(client mqtt.Client, msg mqtt.Message) {
+	// 	deviceID := string(msg.Payload())
+	// 	log.Printf("Received message on topic '%s': Device ID '%s'", msg.Topic(), deviceID)
+	//
+	// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
+	// 	defer cancel()
+	//
+	// 	if err := s.deviceEventService.HandleGetBirthdateMessage(ctx, deviceID); err != nil {
+	// 		log.Printf("Error handling device message for device ID '%s': %v", deviceID, err)
+	// 	}
+	// })
+	//
+	// token.Wait()
+	// if token.Error() != nil {
+	// 	return token.Error()
+	// }
+	//
+	// log.Printf("Successfully subscribed to topic: %s", deviceGetBirthdate)
 	return nil
 }
