@@ -106,7 +106,7 @@ func (s *DeviceEventService) HandleGetBrightnessMessage(ctx context.Context, dev
 		return err
 	}
 
-	return s.requestPublisher.PublishBrightness(deviceID, device.Volume)
+	return s.requestPublisher.PublishBrightness(deviceID, device.Brightness)
 }
 
 func (s *DeviceEventService) HandleGetBirthdateMessage(ctx context.Context, deviceID string) error {
