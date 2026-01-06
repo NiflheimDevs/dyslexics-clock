@@ -8,6 +8,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
+// TODO: 
 func ConnectMosquitto(di *bootstrap.Di) mqtt.Client {
 	client := mqtt.NewClient(mqtt.NewClientOptions().
 		SetClientID(di.Env.MQTT.ClientID).
