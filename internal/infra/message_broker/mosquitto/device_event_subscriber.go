@@ -3,7 +3,6 @@ package mosquitto
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/NiflheimDevs/dyslexics-clock/internal/application/service"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -36,8 +35,9 @@ func (s *DeviceEventSubscriber) Subscribe() error {
 		deviceID := string(msg.Payload())
 		log.Printf("Received message on topic '%s': Device ID '%s'", msg.Topic(), deviceID)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
-		defer cancel()
+		// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
+		// defer cancel()
+		ctx := context.Background() 
 
 		go s.deviceEventService.HandleGetAlarmsMessage(ctx, deviceID)
 	})
@@ -55,8 +55,9 @@ func (s *DeviceEventSubscriber) Subscribe() error {
 		deviceID := string(msg.Payload())
 		log.Printf("Received message on topic '%s': Device ID '%s'", msg.Topic(), deviceID)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
-		defer cancel()
+		// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
+		// defer cancel()
+		ctx := context.Background() 
 
 		go s.deviceEventService.HandleGetColorMessage(ctx, deviceID)
 	})
@@ -74,8 +75,9 @@ func (s *DeviceEventSubscriber) Subscribe() error {
 		deviceID := string(msg.Payload())
 		log.Printf("Received message on topic '%s': Device ID '%s'", msg.Topic(), deviceID)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
-		defer cancel()
+		// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
+		// defer cancel()
+		ctx := context.Background() 
 
 		go s.deviceEventService.HandleGetVolumeMessage(ctx, deviceID)
 	})
@@ -93,8 +95,9 @@ func (s *DeviceEventSubscriber) Subscribe() error {
 		deviceID := string(msg.Payload())
 		log.Printf("Received message on topic '%s': Device ID '%s'", msg.Topic(), deviceID)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
-		defer cancel()
+		// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
+		// defer cancel()
+		ctx := context.Background() 
 
 		go s.deviceEventService.HandleGetBrightnessMessage(ctx, deviceID)
 	})
@@ -111,9 +114,10 @@ func (s *DeviceEventSubscriber) Subscribe() error {
 		deviceID := string(msg.Payload())
 		log.Printf("Received message on topic '%s': Device ID '%s'", msg.Topic(), deviceID)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
-		defer cancel()
+		// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for handling the message
+		// defer cancel()
 
+		ctx := context.Background() 
 		go s.deviceEventService.HandleGetBirthdateMessage(ctx, deviceID)
 	})
 
