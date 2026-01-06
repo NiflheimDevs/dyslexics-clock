@@ -180,6 +180,7 @@ void showHours(uint8_t h) {
 }
 
 void showHappyBirthdayAnimation(void *pvParameters) {
+  FastLED.clear();
   CRGB colors[] = {CRGB::Red,    CRGB::Green,  CRGB::Blue,
                    CRGB::Yellow, CRGB::Purple, CRGB::Orange};
   int num_colors = sizeof(colors) / sizeof(colors[0]);
@@ -231,8 +232,7 @@ void pattern_rainbow(void *pvParameters) {
                  7); // The '7' is the delta between each LED's hue.
     FastLED.show();
     initial_hue++; // This increments the starting hue, making the rainbow move.
-    vTaskDelay(
-        pdMS_TO_TICKS(20)); // A 20ms delay for a smooth animation.
+    vTaskDelay(pdMS_TO_TICKS(20)); // A 20ms delay for a smooth animation.
   }
 }
 
@@ -244,12 +244,11 @@ void pattern_confetti(void *pvParameters) {
 
     // Each frame, pick a random LED and set it to a random, bright color.
     int pos = random16(NUM_LEDS);
-    leds[pos] +=
-        CHSV(random8(), 255, 255); // Add to the existing color to make it brighter.
+    leds[pos] += CHSV(random8(), 255,
+                      255); // Add to the existing color to make it brighter.
 
     FastLED.show();
-    vTaskDelay(
-        pdMS_TO_TICKS(15)); // A 15ms delay keeps the animation fluid.
+    vTaskDelay(pdMS_TO_TICKS(15)); // A 15ms delay keeps the animation fluid.
   }
 }
 

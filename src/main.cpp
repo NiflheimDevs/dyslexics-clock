@@ -11,6 +11,7 @@
 #include "WiFiType.h"
 #include "fl/str.h"
 #include "freertos/projdefs.h"
+#include "freertos/semphr.h"
 #include "led.h"
 #include <cstdint>
 #include <cstdlib>
@@ -24,6 +25,10 @@ WiFiManager wifiManager;
 volatile bool start_portal = false;
 TaskHandle_t animationTaskHandle = NULL;
 TaskHandle_t startupAnimationHandle = NULL;
+TaskHandle_t stopTaskHandle = NULL;
+TaskHandle_t snoozeTaskHandle = NULL;
+SemaphoreHandle_t stopSemaphore = NULL;
+SemaphoreHandle_t snoozeSemaphore = NULL;
 
 struct MqttMsg {
   String topic;
@@ -111,8 +116,14 @@ Alarm *create_snooze_alarm() {
 
 AlarmHeap alarmHeap;
 
+void snooze_handler_task(void *pvParameters);
+void stop_handler_task(void *pvParameters);
+
 void setup() {
   Serial.begin(115200);
+
+  snoozeSemaphore = xSemaphoreCreateBinary();
+  stopSemaphore = xSemaphoreCreateBinary();
 
   // 1. Initialize LEDs first
   setupLED();
@@ -131,6 +142,10 @@ void setup() {
   setupDfPlayer();
   setupTouch();
   setupMQTT();
+
+  xTaskCreate(snooze_handler_task, "SnoozeHandler", 4096, NULL, 5,
+              &snoozeTaskHandle);
+  xTaskCreate(stop_handler_task, "StopHandler", 4096, NULL, 5, &stopTaskHandle);
 
   if (startupAnimationHandle != NULL) {
     vTaskDelete(startupAnimationHandle);
@@ -543,30 +558,45 @@ void setupTouch() {
 }
 
 void ARDUINO_ISR_ATTR Snooze() {
-  player.stop();
-  Serial.println("Snooze");
+  xSemaphoreGiveFromISR(snoozeSemaphore, NULL);
+}
 
-  if (is_ringing) {
-    Alarm *alarm = create_snooze_alarm();
-    alarmHeap.insert(alarm);
-    if (DEBUGMODE)
-      Serial.println("snoozed alarm added");
-    is_ringing = false;
+void ARDUINO_ISR_ATTR Stop() { xSemaphoreGiveFromISR(stopSemaphore, NULL); }
+
+void snooze_handler_task(void *pvParameters) {
+  for (;;) {
+    if (xSemaphoreTake(snoozeSemaphore, portMAX_DELAY) == pdTRUE) {
+      player.stop();
+      Serial.println("Snooze");
+
+      if (is_ringing) {
+        Alarm *alarm = create_snooze_alarm();
+        alarmHeap.insert(alarm);
+        if (DEBUGMODE)
+          Serial.println("snoozed alarm added");
+        is_ringing = false;
+      }
+    }
   }
 }
 
-void ARDUINO_ISR_ATTR Stop() {
-  if (is_birthday) {
-    is_birthday = false;
-    if (animationTaskHandle != NULL) {
-      vTaskDelete(animationTaskHandle);
-      animationTaskHandle = NULL;
+void stop_handler_task(void *pvParameters) {
+  for (;;) {
+    if (xSemaphoreTake(stopSemaphore, portMAX_DELAY) == pdTRUE) {
+      if (is_birthday) {
+        Serial.println("Stop Birthday");
+        is_birthday = false;
+        if (animationTaskHandle != NULL) {
+          vTaskDelete(animationTaskHandle);
+          animationTaskHandle = NULL;
+        }
+        DateTime now = rtc.now();
+        showTime(now.hour(), now.minute());
+      }
+      player.stop();
+      Serial.println("Stop");
     }
-    DateTime now = rtc.now();
-    showTime(now.hour(), now.minute());
   }
-  player.stop();
-  Serial.println("Stop");
 }
 
 void AlarmStart() {
