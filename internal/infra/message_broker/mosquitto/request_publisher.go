@@ -24,6 +24,9 @@ func NewRequestPublisher(client mqtt.Client) *RequestPublisher {
 
 func (p *RequestPublisher) PublishAlarms(deviceID string, alarms []model.Alarm) error {
 	topic := fmt.Sprintf("devices/%s/alarms", deviceID)
+	if alarms == nil {
+		alarms = []model.Alarm{}
+	}
 
 	payload, err := json.Marshal(alarms)
 	if err != nil {
