@@ -25,7 +25,7 @@ func NewDeviceEventSubscriber(client mqtt.Client, deviceEventService service.Dev
 	return &DeviceEventSubscriber{
 		client:             client,
 		deviceEventService: deviceEventService,
-		qos:                1, // at-least-once delivery
+		qos:                0, // at-least-once delivery
 	}
 }
 
