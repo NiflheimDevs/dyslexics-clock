@@ -129,7 +129,13 @@ void setup() {
   setupLED();
 
   // 2. Start animation task and get its handle
-  xTaskCreate(showStartupPattern, "StartupAnim",
+  // xTaskCreate(showStartupPattern, "StartupAnim",
+  //             4096,                   // Stack size
+  //             NULL,                   // Parameters
+  //             1,                      // Priority
+  //             &startupAnimationHandle // Task handle
+  // );
+  xTaskCreate(pattern_confetti, "StartupAnim",
               4096,                   // Stack size
               NULL,                   // Parameters
               1,                      // Priority
@@ -225,9 +231,10 @@ void mbCallback(char *topic, byte *message, unsigned int length) {
       if (animationTaskHandle != NULL) {
         vTaskDelete(animationTaskHandle);
         animationTaskHandle = NULL;
+        player.stop();
       }
       DateTime now = rtc.now();
-      showTime(now.hour(), now.minute());
+      showTime(now.minute(), now.hour());
     }
     is_ringing = false;
     player.stop();
@@ -557,9 +564,7 @@ void setupTouch() {
   Serial.println("Touch Connected to Interrupt");
 }
 
-void ARDUINO_ISR_ATTR Snooze() {
-  xSemaphoreGiveFromISR(snoozeSemaphore, NULL);
-}
+void ARDUINO_ISR_ATTR Snooze() { xSemaphoreGiveFromISR(snoozeSemaphore, NULL); }
 
 void ARDUINO_ISR_ATTR Stop() { xSemaphoreGiveFromISR(stopSemaphore, NULL); }
 
@@ -574,8 +579,8 @@ void snooze_handler_task(void *pvParameters) {
         alarmHeap.insert(alarm);
         if (DEBUGMODE)
           Serial.println("snoozed alarm added");
-        is_ringing = false;
       }
+      is_ringing = false;
     }
   }
 }
@@ -589,9 +594,10 @@ void stop_handler_task(void *pvParameters) {
         if (animationTaskHandle != NULL) {
           vTaskDelete(animationTaskHandle);
           animationTaskHandle = NULL;
+          player.stop();
         }
         DateTime now = rtc.now();
-        showTime(now.hour(), now.minute());
+        showTime(now.minute(), now.hour());
       }
       player.stop();
       Serial.println("Stop");

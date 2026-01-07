@@ -180,7 +180,10 @@ void showHours(uint8_t h) {
 }
 
 void showHappyBirthdayAnimation(void *pvParameters) {
+  player.volume(volume);
+  player.play(4);
   FastLED.clear();
+  FastLED.setBrightness(BRIGHTNESS);
   CRGB colors[] = {CRGB::Red,    CRGB::Green,  CRGB::Blue,
                    CRGB::Yellow, CRGB::Purple, CRGB::Orange};
   int num_colors = sizeof(colors) / sizeof(colors[0]);
@@ -198,10 +201,12 @@ void showHappyBirthdayAnimation(void *pvParameters) {
     }
 
     FastLED.show();
+    FastLED.setBrightness(BRIGHTNESS);
     vTaskDelay(pdMS_TO_TICKS(500)); // On time
 
     FastLED.clear();
     FastLED.show();
+    FastLED.setBrightness(BRIGHTNESS);
     vTaskDelay(pdMS_TO_TICKS(500)); // Off time
 
     color_index = (color_index + 1) % num_colors; // Change color

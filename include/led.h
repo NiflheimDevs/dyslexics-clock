@@ -1,11 +1,14 @@
 #include <FastLED.h>
-
+#include <DFRobotDFPlayerMini.h>
 #define FPSerial Serial1
 #define LED_PIN 27
 #define NUM_LEDS 121
 extern uint8_t BRIGHTNESS;
 
 extern CRGB leds[NUM_LEDS];
+
+extern DFRobotDFPlayerMini player;
+extern uint8_t volume;
 
 extern CRGB gClockColor;
 
