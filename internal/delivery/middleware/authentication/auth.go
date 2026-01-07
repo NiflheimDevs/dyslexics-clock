@@ -7,7 +7,7 @@ import (
 	"github.com/NiflheimDevs/dyslexics-clock/bootstrap"
 	"github.com/NiflheimDevs/dyslexics-clock/internal/application/service"
 	derror "github.com/NiflheimDevs/dyslexics-clock/internal/domain/error"
-	repository "github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository/postgres"
+	repository "github.com/NiflheimDevs/dyslexics-clock/internal/domain/repository"
 )
 
 type Authentication struct {

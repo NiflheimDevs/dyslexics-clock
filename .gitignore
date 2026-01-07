@@ -1,2 +1,5 @@
 .env
 internal/jwt
+.ccls
+.pio
+.cache

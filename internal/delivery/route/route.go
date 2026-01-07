@@ -35,8 +35,14 @@ func RouteInit(app *wire.App) http.Handler {
 		r.Use(app.Middlewares.Auth.AuthRequired)
 		r.Get("/", app.Handlers.DeviceHandler.GetDevice)
 		r.Get("/color", app.Handlers.DeviceHandler.GetColor)
+		r.Get("/brightness", app.Handlers.DeviceHandler.GetBrightness)
 		r.Patch("/color", app.Handlers.DeviceHandler.UpdateColor)
 		r.Patch("/volume", app.Handlers.DeviceHandler.UpdateVolume)
+		r.Patch("/brightness", app.Handlers.DeviceHandler.UpdateBrightness)
+		r.Patch("/birthdate", app.Handlers.DeviceHandler.UpdateBirthdate)
+		r.Post("/bezanbekob", app.Handlers.DeviceHandler.Ring)
+		r.Post("/snooze", app.Handlers.DeviceHandler.Snooze)
+		r.Post("/stop", app.Handlers.DeviceHandler.Silent)
 	})
 
 	return mux

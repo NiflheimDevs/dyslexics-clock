@@ -58,13 +58,15 @@ func (ah *AlarmHandler) UpdateAlarm(w http.ResponseWriter, r *http.Request) {
 
 	req := Validated[dto.UpdateAlarm](ah.Validator, r)
 
-	err = ah.AlarmService.UpdateAlarm(ctx, uint(alarmID), deviceID, &req)
+	alarm, err := ah.AlarmService.UpdateAlarm(ctx, uint(alarmID), deviceID, &req)
 
 	if err != nil {
 		panic(err)
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(alarm)
 }
 
 func (ah *AlarmHandler) DeleteAlarm(w http.ResponseWriter, r *http.Request) {
